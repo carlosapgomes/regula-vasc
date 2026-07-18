@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}RegulaVasc — Regulação Vascular{% endblock %}
+
+{% block content %}
+<div class="landing-hero">
+  <h1 class="landing-hero__title">RegulaVasc</h1>
+  <p class="landing-hero__subtitle">
+    Sistema de apoio à regulação médica para cirurgia vascular<br>
+    Hospital Metropolitano Humaitá
+  </p>
+  <div class="row justify-content-center mt-4 g-3">
+    <div class="col-sm-6 col-md-4 col-lg-3">
+      <a href="{% url 'admin:index' %}" class="card role-card text-center p-4">
+        <div class="role-card__icon">🔐</div>
+        <div class="role-card__title">Administrador</div>
+        <div class="role-card__desc">Acessar painel administrativo</div>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

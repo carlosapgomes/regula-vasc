@@ -1,0 +1,184 @@
+/* ============================================================
+   RegulaVasc — Tema Hospitalar
+   Paleta: primary #0b4263, accent #2f8f9d
+   ============================================================ */
+
+:root {
+  --hospital-primary: #0b4263;
+  --hospital-secondary: #1b5f78;
+  --hospital-accent: #2f8f9d;
+  --hospital-accent-light: #d4eef3;
+  --hospital-bg: #f3f8fb;
+  --hospital-surface: #ffffff;
+  --hospital-border: #c7d8e2;
+  --hospital-text: #1f2f3a;
+  --hospital-muted: #4c6677;
+  --hospital-success: #1b7a4a;
+  --hospital-warning: #b05b0c;
+  --hospital-danger: #b53535;
+  --hospital-info: #2f8f9d;
+}
+
+/* ---------- Base ---------- */
+
+body {
+  font-family: "Source Sans 3", sans-serif;
+}
+
+body.hospital-shell {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--hospital-text);
+  font-family: "Source Sans 3", sans-serif;
+  background:
+    radial-gradient(circle at top right, rgba(47, 143, 157, 0.10), transparent 46%),
+    radial-gradient(circle at top left, rgba(11, 66, 99, 0.08), transparent 38%),
+    var(--hospital-bg);
+}
+
+body.hospital-shell h1,
+body.hospital-shell h2,
+body.hospital-shell h3,
+body.hospital-shell h4,
+body.hospital-shell h5,
+body.hospital-shell h6 {
+  font-family: "Merriweather Sans", sans-serif;
+  letter-spacing: 0.01em;
+}
+
+/* ---------- Header ---------- */
+
+.app-header {
+  border-bottom: 1px solid rgba(199, 216, 226, 0.7);
+  background: linear-gradient(125deg, var(--hospital-primary), var(--hospital-secondary));
+}
+
+.app-header.navbar {
+  --bs-navbar-color: rgba(255, 255, 255, 0.9);
+  --bs-navbar-hover-color: #fff;
+  --bs-navbar-active-color: #fff;
+  --bs-navbar-brand-color: #fff;
+  --bs-navbar-brand-hover-color: rgba(255, 255, 255, 0.9);
+}
+
+.app-header .navbar-brand {
+  max-width: 70%;
+}
+
+.app-header .navbar-toggler {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.app-header__title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.app-session-meta {
+  font-size: 0.86rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ---------- Shell animation ---------- */
+
+.app-shell {
+  animation: shell-fade-in 220ms ease-out;
+}
+
+@keyframes shell-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- Cards ---------- */
+
+.hospital-shell .card {
+  border: 1px solid var(--hospital-border);
+  border-radius: 0.9rem;
+  background-color: var(--hospital-surface);
+  box-shadow: 0 10px 22px rgba(10, 31, 46, 0.08);
+}
+
+/* ---------- Buttons ---------- */
+
+.btn-hospital {
+  border-color: var(--hospital-primary);
+  background-color: var(--hospital-primary);
+  color: #fff;
+}
+
+.btn-hospital:hover,
+.btn-hospital:focus {
+  border-color: #07344e;
+  background-color: #07344e;
+  color: #fff;
+}
+
+.btn-hospital-outline {
+  border-color: var(--hospital-primary);
+  color: var(--hospital-primary);
+}
+
+.btn-hospital-outline:hover,
+.btn-hospital-outline:focus {
+  background-color: var(--hospital-primary);
+  color: #fff;
+}
+
+/* ---------- Landing page ---------- */
+
+.landing-hero {
+  text-align: center;
+  padding: 3rem 1rem 2rem;
+}
+
+.landing-hero__title {
+  font-size: 2rem;
+  color: var(--hospital-primary);
+}
+
+.landing-hero__subtitle {
+  font-size: 1.1rem;
+  color: var(--hospital-muted);
+  max-width: 580px;
+  margin: 0.5rem auto 0;
+}
+
+/* ---------- Role selection cards ---------- */
+
+.role-card {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.role-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 28px rgba(10, 31, 46, 0.12);
+  color: inherit;
+}
+
+.role-card__icon {
+  font-size: 2.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.role-card__title {
+  font-size: 1.15rem;
+  color: var(--hospital-primary);
+}
+
+.role-card__desc {
+  font-size: 0.88rem;
+  color: var(--hospital-muted);
+}

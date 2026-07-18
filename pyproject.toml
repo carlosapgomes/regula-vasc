@@ -1,0 +1,55 @@
+[project]
+name = "regula-vasc"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "django>=5.2,<6",
+    "psycopg[binary]",
+    "whitenoise",
+    "python-dotenv",
+    "dj-database-url",
+    "gunicorn>=23.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-django",
+    "ruff",
+    "mypy",
+    "django-stubs",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 120
+exclude = ["migrations", ".pi", "static/js/", "static/*.js"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["config", "apps"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+pythonpath = ["."]
+addopts = ["--reuse-db", "-v"]
+
+[tool.mypy]
+plugins = ["mypy_django_plugin.main"]
+python_version = "3.13"
+strict = true
+explicit_package_bases = true
+
+[[tool.mypy.overrides]]
+module = "config.*"
+disable_error_code = ["no-untyped-def"]
+
+[[tool.mypy.overrides]]
+module = "apps.*"
+disable_error_code = ["no-untyped-def", "no-untyped-call"]
+
+[tool.django-stubs]
+django_settings_module = "config.settings.test"
