@@ -1,0 +1,24 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Python 3.13+, Django 5.2, PostgreSQL 17, django-fsm 3.0.1, django-q2, pymupdf, openai, pydantic v2, gunicorn, whitenoise, Bootstrap 5.3 CDN, Vanilla JS ES6+, uv, pytest, ruff, mypy
+  Conventions: Django SSR (no REST/SPA), TDD obrigatório (RED→GREEN→REFACTOR), clean code/DRY/YAGNI, quality gate (ruff check + ruff format --check + mypy + pytest), vertical slices que tocam mínimo de arquivos
+  Domain: Sistema de apoio à regulação médica vascular (cirurgia vascular) com 3 atores — enfermeiro (upload de relatório PDF), médico (parecer de aceite/recusa), administrador (dashboard e encerramento administrativo). Pipeline LLM em 2 etapas (LLM1 extração estruturada + LLM2 sugestão/parecer) com suporte a dual-LLM (primário + secundário em paralelo). Monolito Django com máquina de estados (django-fsm) para ciclo de vida do caso.
+  Reference projects: ats-web (Django SSR completo, 1755 testes) e matrix-pdf-summarizer-bot (prompts vasculares e multi-provider LLM).
+
+rules:
+  proposal:
+    - Explicar problema, objetivo, escopo incluído/fora e critérios de sucesso
+  design:
+    - Obrigatório para este change (não é bugfix QUICK)
+    - Descrever arquitetura, modelos, FSM, schemas e decisões
+  tasks:
+    - Listar slices em ordem implementável
+    - Cada slice deve ser vertical e testável
+    - Cada slice deve ter handoff + prompt para LLM com contexto zero
+  slices:
+    - Verticais e enxutos (ideal <= 5 arquivos tocados quando viável)
+    - TDD obrigatório com RED/GREEN/REFACTOR
+    - Critérios e gates de autoavaliação binários
+    - Relatório temporário obrigatório em /tmp/ para verificador terceiro
+    - Protocolo DeepSeek4-Flash quando aplicável
