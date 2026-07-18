@@ -2,16 +2,16 @@
 
 ## 1. S00 — Bootstrap do Projeto
 
-- [ ] 1.1 Criar estrutura Django: `config/`, `apps/`, `templates/`, `static/`, `manage.py`
-- [ ] 1.2 Criar `pyproject.toml` com dependências (django, django-q2, pymupdf, openai, pydantic, etc.)
-- [ ] 1.3 Criar `config/settings/base.py`, `dev.py`, `test.py`
-- [ ] 1.4 Criar `docker-compose.yml` com PostgreSQL 17 + app
-- [ ] 1.5 Criar `templates/base.html` com tema hospitalar, PWA meta tags, navbar Bootstrap 5.3
-- [ ] 1.6 Criar `static/css/app.css` com variáveis CSS e tema hospitalar
-- [ ] 1.7 Criar `static/manifest.json` e `static/js/sw.js` (service worker)
-- [ ] 1.8 Criar `conftest.py` com fixtures base pytest-django
-- [ ] 1.9 Criar `templates/home.html` (landing page inicial)
-- [ ] 1.10 Criar `config/urls.py` root URLconf
+- [x] 1.1 Criar estrutura Django: `config/`, `apps/`, `templates/`, `static/`, `manage.py`
+- [x] 1.2 Criar `pyproject.toml` com dependências (django, django-q2, pymupdf, openai, pydantic, etc.)
+- [x] 1.3 Criar `config/settings/base.py`, `dev.py`, `test.py`
+- [x] 1.4 Criar `docker-compose.yml` com PostgreSQL 17 + app
+- [x] 1.5 Criar `templates/base.html` com tema hospitalar, PWA meta tags, navbar Bootstrap 5.3
+- [x] 1.6 Criar `static/css/app.css` com variáveis CSS e tema hospitalar
+- [x] 1.7 Criar `static/manifest.json` e `static/js/sw.js` (service worker)
+- [x] 1.8 Criar `conftest.py` com fixtures base pytest-django
+- [x] 1.9 Criar `templates/home.html` (landing page inicial)
+- [x] 1.10 Criar `config/urls.py` root URLconf
 
 Ver slice: `slices/slice-000-bootstrap.md`
 
