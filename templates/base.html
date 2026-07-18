@@ -32,6 +32,9 @@
     </a>
     {% if user.is_authenticated %}
     <div class="d-flex align-items-center gap-2 d-lg-none ms-auto">
+      {% if active_role %}
+      <span class="badge bg-light text-dark me-2">{{ active_role_display }}</span>
+      {% endif %}
       <a href="{% url 'admin:index' %}" class="btn btn-sm btn-light">Admin</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sessionMenu"
               aria-controls="sessionMenu" aria-expanded="false" aria-label="Menu da sessão">
@@ -41,10 +44,17 @@
     <div class="collapse navbar-collapse" id="sessionMenu">
       <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center gap-2 gap-lg-3 ms-lg-auto py-2 py-lg-0">
         <div class="d-flex align-items-center gap-2">
+          {% if active_role %}
+          <span class="badge bg-light text-dark me-2">{{ active_role_display }}</span>
+          {% endif %}
           <span class="app-session-meta">{{ user.get_full_name|default:user.username }}</span>
         </div>
         <div class="d-flex align-items-center gap-2 ms-lg-auto">
-          <form method="post" action="/logout/" class="d-inline">
+          <a href="{% url 'profile' %}" class="btn btn-sm btn-outline-light">Perfil</a>
+          {% if user.roles.count > 1 %}
+          <a href="{% url 'switch_role' %}" class="btn btn-sm btn-outline-light">Trocar papel</a>
+          {% endif %}
+          <form method="post" action="{% url 'logout' %}" class="d-inline">
             {% csrf_token %}
             <button type="submit" class="btn btn-sm btn-light">Sair</button>
           </form>

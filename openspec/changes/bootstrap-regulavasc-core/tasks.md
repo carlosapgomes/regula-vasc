@@ -17,14 +17,14 @@ Ver slice: `slices/slice-000-bootstrap.md`
 
 ## 2. S01 — Accounts (Autenticação e Papéis)
 
-- [ ] 2.1 Criar app `apps/accounts/` com modelos User (AbstractUser), Role, ProfessionalCouncil
-- [ ] 2.2 Criar migration inicial + seed de roles (nurse, doctor, admin)
-- [ ] 2.3 Criar views: login, logout, switch_role, profile, password_change, password_reset
-- [ ] 2.4 Criar templates: login.html, profile.html, switch_role.html, password_reset*.html
-- [ ] 2.5 Criar `@role_required` decorator e context processor de `active_role`
-- [ ] 2.6 Criar comando `seed_admin` para criar admin inicial
-- [ ] 2.7 Criar email backend para password reset (console em dev, SMTP em prod)
-- [ ] 2.8 Testes: models, views, decorators, password reset flow
+- [x] 2.1 Criar app `apps/accounts/` com modelos User (AbstractUser), Role, ProfessionalCouncil
+- [x] 2.2 Criar migration inicial + seed de roles (nurse, doctor, admin)
+- [x] 2.3 Criar views: login, logout, switch_role, profile, password_change, password_reset
+- [x] 2.4 Criar templates: login.html, profile.html, switch_role.html, password_reset*.html
+- [x] 2.5 Criar `@role_required` decorator e context processor de `active_role`
+- [x] 2.6 Criar comando `seed_admin` para criar admin inicial
+- [x] 2.7 Criar email backend para password reset (console em dev, SMTP em prod)
+- [x] 2.8 Testes: models, views, decorators, password reset flow
 
 Ver slice: `slices/slice-001-accounts.md`
 

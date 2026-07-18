@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_display_name }} — Selecionar Papel{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <h3 class="text-center mb-3">Bem-vindo(a), {{ user.username }}</h3>
+                <p class="text-muted text-center mb-4">Escolha com qual papel deseja entrar:</p>
+
+                <div class="d-grid gap-2">
+                    {% for role in roles %}
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="role" value="{{ role.name }}">
+                            <button type="submit" class="btn btn-hospital-outline w-100 py-3 role-card">
+                                {{ role.label }}
+                            </button>
+                        </form>
+                    {% endfor %}
+                </div>
+
+                <div class="text-center mt-3">
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-link text-muted">Sair</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

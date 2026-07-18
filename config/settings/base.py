@@ -15,7 +15,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Local apps
+    "apps.accounts",
 ]
+
+AUTH_USER_MODEL = "accounts.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -26,6 +30,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "apps.accounts.middleware.ActiveRoleMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -41,6 +46,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.accounts.context_processors.role_context",
+                "apps.accounts.context_processors.app_display_name",
             ],
         },
     },
@@ -51,6 +58,12 @@ WSGI_APPLICATION = "config.wsgi.application"
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/login/"
+
+APP_DISPLAY_NAME = "Regulação Vascular"
+
+# Email (dev usa console backend, definido em dev.py)
+PASSWORD_RESET_TIMEOUT = 3600 * 24  # 24h
+DEFAULT_FROM_EMAIL = "noreply@regulavasc.hospital.org"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
