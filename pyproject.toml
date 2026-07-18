@@ -9,6 +9,11 @@ dependencies = [
     "python-dotenv",
     "dj-database-url",
     "gunicorn>=23.0.0",
+    "django-fsm==3.0.1",
+    "django-q2",
+    "pymupdf>=1.27.2.3",
+    "openai>=2.34.0",
+    "pydantic>=2",
 ]
 
 [dependency-groups]
