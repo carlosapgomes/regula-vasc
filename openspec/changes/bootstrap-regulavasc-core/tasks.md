@@ -30,15 +30,15 @@ Ver slice: `slices/slice-001-accounts.md`
 
 ## 3. S02 — Cases (Modelo Case + FSM)
 
-- [ ] 3.1 Criar app `apps/cases/` com modelos Case, CaseEvent, CaseAttachment, CaseCommunicationMessage
-- [ ] 3.2 Implementar FSM com 10 estados e transições (django-fsm)
-- [ ] 3.3 Implementar CaseEvent (auditoria append-only) e signal para criar eventos pós-save
-- [ ] 3.4 Implementar CaseAttachment com upload_to, supressão, e validação de content_type
-- [ ] 3.5 Implementar CaseCommunicationMessage (thread operacional)
-- [ ] 3.6 Implementar lock system: claim, assert, renew, release, expire_stale
-- [ ] 3.7 Implementar `administratively_close_case` service
-- [ ] 3.8 Criar admin.py para Case e CaseEvent
-- [ ] 3.9 Testes: FSM transitions, modelos, lock system, CaseEvent creation, administrative closure
+- [x] 3.1 Criar app `apps/cases/` com modelos Case, CaseEvent, CaseAttachment, CaseCommunicationMessage
+- [x] 3.2 Implementar FSM com 10 estados e transições (django-fsm)
+- [x] 3.3 Implementar CaseEvent (auditoria append-only) e signal para criar eventos pós-save
+- [x] 3.4 Implementar CaseAttachment com upload_to, supressão, e validação de content_type
+- [x] 3.5 Implementar CaseCommunicationMessage (thread operacional)
+- [x] 3.6 Implementar lock system: claim, assert, renew, release, expire_stale
+- [x] 3.7 Implementar `administratively_close_case` service
+- [x] 3.8 Criar admin.py para Case e CaseEvent
+- [x] 3.9 Testes: FSM transitions, modelos, lock system, CaseEvent creation, administrative closure
 
 Ver slice: `slices/slice-002-cases.md`
 
