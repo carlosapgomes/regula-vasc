@@ -1,0 +1,215 @@
+<!-- Back link -->
+<div class="mb-3">
+  <a href="{{ back_url }}" class="btn btn-sm btn-outline-secondary">{{ back_label }}</a>
+</div>
+
+<!-- Status header -->
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+  <div>
+    <h4 class="mb-1">{{ patient_name|default:"Paciente" }}</h4>
+    <p class="text-muted mb-0">
+      <strong>Regulação:</strong> {{ case.agency_record_number|default:"—" }} &middot;
+      <strong>Criado em:</strong> {{ case.created_at|date:"d/m/Y H:i" }} &middot;
+      <strong>Criado por:</strong> {{ case.created_by.get_full_name|default:case.created_by.username }}
+    </p>
+  </div>
+  <div class="text-end">
+    <span class="badge fs-6 {{ status_css }}">{{ status_label }}</span>
+    {% if case.status == "FAILED" %}
+    <span class="badge bg-warning text-dark">⚠️ Falha no processamento</span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left column: Timeline + Communication -->
+  <div class="col-lg-7">
+
+    <!-- Case info card -->
+    <div class="card mb-3">
+      <div class="card-header">
+        <h6 class="mb-0">📋 Informações do Caso</h6>
+      </div>
+      <div class="card-body">
+        <div class="row g-2">
+          <div class="col-md-6">
+            <small class="text-muted d-block">ID do Caso</small>
+            <code>{{ case.case_id }}</code>
+          </div>
+          <div class="col-md-6">
+            <small class="text-muted d-block">Nº Regulação</small>
+            <strong>{{ case.agency_record_number|default:"—" }}</strong>
+          </div>
+          <div class="col-md-6">
+            <small class="text-muted d-block">Status FSM</small>
+            <span class="badge {{ status_css }}">{{ status_label }}</span>
+          </div>
+          <div class="col-md-6">
+            <small class="text-muted d-block">Dias em Regulação</small>
+            <strong>{{ case.regulation_days_on_screen|default:"—" }}</strong>
+          </div>
+          <div class="col-md-6">
+            <small class="text-muted d-block">Decisão Médica</small>
+            <strong>
+              {% if case.doctor_decision == "accept" %}
+              <span class="text-success">✅ Aceito</span>
+              {% elif case.doctor_decision == "deny" %}
+              <span class="text-danger">❌ Recusado</span>
+              {% else %}
+              —
+              {% endif %}
+            </strong>
+          </div>
+          <div class="col-md-6">
+            <small class="text-muted d-block">Médico Responsável</small>
+            <strong>{{ case.doctor_display|default:"—" }}</strong>
+          </div>
+          {% if case.admin_closed_by %}
+          <div class="col-md-6">
+            <small class="text-muted d-block">Encerrado por</small>
+            <strong>{{ case.admin_closed_by.get_full_name|default:case.admin_closed_by.username }}</strong>
+          </div>
+          <div class="col-md-6">
+            <small class="text-muted d-block">Motivo Encerramento</small>
+            <strong>{{ case.admin_closure_reason_code|default:"—" }}</strong>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="card mb-3">
+      <div class="card-header">
+        <h6 class="mb-0">📜 Timeline de Eventos</h6>
+      </div>
+      <div class="card-body p-0">
+        <div class="timeline p-3">
+          {% for item in events %}
+          <div class="timeline-item d-flex gap-3 mb-3">
+            <div class="timeline-dot dot-{{ item.dot_css }}"></div>
+            <div class="flex-grow-1">
+              <div class="d-flex justify-content-between">
+                <strong>{{ item.label }}</strong>
+                <small class="text-muted">{{ item.event.timestamp|date:"d/m/Y H:i" }}</small>
+              </div>
+              {% if item.event.actor %}
+              <small class="text-muted">por {{ item.event.actor.get_full_name|default:item.event.actor.username }}</small>
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+          <p class="text-muted mb-0">Nenhum evento registrado.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Communication Thread (partial compartilhado, dashboard read-only) -->
+    {% include "cases/_communication_thread.html" %}
+
+  </div>
+
+  <!-- Right column: PDF + Admin Close + Attachments -->
+  <div class="col-lg-5">
+
+    <!-- PDF Viewer -->
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">📄 PDF do Relatório</h6>
+        <a href="{% url 'intake:serve_pdf' case_id=case.case_id %}" target="_blank" class="btn btn-sm btn-outline-secondary">Abrir</a>
+      </div>
+      <div class="card-body p-0">
+        {% if case.pdf_file %}
+        <embed src="{% url 'intake:serve_pdf' case_id=case.case_id %}" type="application/pdf" class="w-100" style="height: 400px;">
+        {% else %}
+        <div class="p-4 text-center text-muted">
+          <p>PDF não disponível.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Administrative Close -->
+    {% if can_administratively_close %}
+    <div class="card mb-3 border-danger">
+      <div class="card-header bg-danger text-white">
+        <h6 class="mb-0">🔒 Encerramento Administrativo</h6>
+      </div>
+      <div class="card-body">
+        <form method="post" action="{% url 'dashboard:administrative_close' case_id=case.case_id %}">
+          {% csrf_token %}
+          <div class="mb-2">
+            <select name="reason_code" class="form-select" required>
+              <option value="">Selecione o motivo...</option>
+              {% for code, label in admin_close_reason_choices %}
+              <option value="{{ code }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2">
+            <textarea name="reason_text" class="form-control" rows="3" placeholder="Descreva o motivo do encerramento..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-danger w-100">
+            🔒 Encerrar Caso
+          </button>
+          <div class="form-text text-muted small mt-1">
+            Esta ação é irreversível. O caso será movido para CLEANED.
+          </div>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Attachments list -->
+    {% if attachments %}
+    <div class="card mb-3">
+      <div class="card-header">
+        <h6 class="mb-0">📎 Anexos ({{ attachments|length }})</h6>
+      </div>
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+          {% for att in attachments %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <a href="{% url 'intake:serve_attachment' case_id=case.case_id attachment_id=att.attachment_id %}" target="_blank">
+                {{ att.original_filename }}
+              </a>
+              <br>
+              <small class="text-muted">
+                {{ att.size_bytes|filesizeformat }}
+                {% if att.note %} — {{ att.note }}{% endif %}
+              </small>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Dual-LLM results -->
+    {% if case.llm1_primary_result %}
+    <div class="card mb-3">
+      <div class="card-header">
+        <h6 class="mb-0">🤖 Resultados LLM1 (Extração)</h6>
+      </div>
+      <div class="card-body p-0">
+        <pre class="mb-0 p-3" style="max-height: 200px; overflow-y: auto; font-size: 0.8rem;"><code>{{ case.llm1_primary_result|pprint }}</code></pre>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if case.llm2_primary_result %}
+    <div class="card mb-3">
+      <div class="card-header">
+        <h6 class="mb-0">🤖 Resultados LLM2 (Sugestão)</h6>
+      </div>
+      <div class="card-body p-0">
+        <pre class="mb-0 p-3" style="max-height: 200px; overflow-y: auto; font-size: 0.8rem;"><code>{{ case.llm2_primary_result|pprint }}</code></pre>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>

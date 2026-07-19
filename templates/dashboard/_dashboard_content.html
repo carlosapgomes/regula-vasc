@@ -1,0 +1,210 @@
+{% load dashboard_extras %}
+<!-- Period filter -->
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h4 class="mb-0">📊 Métricas de Fluxo</h4>
+  <div class="btn-group btn-group-sm" role="group">
+    <a href="?period=today{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search %}&q={{ search }}{% endif %}" class="btn btn-outline-primary {% if period == 'today' %}active{% endif %}">Hoje</a>
+    <a href="?period=7d{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search %}&q={{ search }}{% endif %}" class="btn btn-outline-primary {% if period == '7d' %}active{% endif %}">7 dias</a>
+    <a href="?period=30d{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search %}&q={{ search }}{% endif %}" class="btn btn-outline-primary {% if period == '30d' %}active{% endif %}">30 dias</a>
+    <a href="?period=all{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search %}&q={{ search }}{% endif %}" class="btn btn-outline-primary {% if period == 'all' %}active{% endif %}">Todos</a>
+  </div>
+</div>
+
+<!-- Metrics cards row 1 -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card text-center h-100">
+      <div class="card-body">
+        <h5 class="card-title text-muted small mb-1">Total</h5>
+        <p class="display-6 mb-0">{{ metrics.total }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center h-100 border-success">
+      <div class="card-body">
+        <h5 class="card-title text-muted small mb-1">✅ Aceitos</h5>
+        <p class="display-6 mb-0 text-success">{{ metrics.accepted }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center h-100 border-danger">
+      <div class="card-body">
+        <h5 class="card-title text-muted small mb-1">❌ Recusados</h5>
+        <p class="display-6 mb-0 text-danger">{{ metrics.denied }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center h-100 border-warning">
+      <div class="card-body">
+        <h5 class="card-title text-muted small mb-1">🔒 Encerramento Admin</h5>
+        <p class="display-6 mb-0 text-warning">{{ metrics.admin_closed }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Metrics cards row 2 -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card text-center h-100">
+      <div class="card-body">
+        <h5 class="card-title text-muted small mb-1">⏳ Pendentes (Médico)</h5>
+        <p class="display-6 mb-0">{{ metrics.wait_doctor }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center h-100">
+      <div class="card-body">
+        <h5 class="card-title text-muted small mb-1">⏳ Aguardando Enfermeiro</h5>
+        <p class="display-6 mb-0">{{ metrics.wait_nurse }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center h-100 border-danger">
+      <div class="card-body">
+        <h5 class="card-title text-muted small mb-1">⚠️ Falhas</h5>
+        <p class="display-6 mb-0 text-danger">{{ metrics.failed }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center h-100">
+      <div class="card-body">
+        <h5 class="card-title text-muted small mb-1">📊 Pendentes Total</h5>
+        <p class="display-6 mb-0">{{ metrics.pending }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Average times -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h6 class="card-title text-muted small mb-1">⏱️ Upload → Decisão Médica</h6>
+        <p class="h4 mb-0">{{ avg_times.upload_to_decision_avg|duration_format }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h6 class="card-title text-muted small mb-1">⏱️ Decisão → Ciência</h6>
+        <p class="h4 mb-0">{{ avg_times.decision_to_ack_avg|duration_format }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <h6 class="card-title text-muted small mb-1">⏱️ Ciclo Total (médio)</h6>
+        <p class="h4 mb-0">{{ avg_times.total_cycle_avg|duration_format }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Attention cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card border-danger h-100">
+      <div class="card-header bg-danger text-white">
+        <h6 class="mb-0">⚠️ Casos com Falha</h6>
+      </div>
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+          {% for c in attention.failed|slice:":5" %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <a href="{% url 'dashboard:case_detail' case_id=c.case_id %}" class="text-decoration-none">
+                {{ c.patient_name|default:"—" }}
+              </a>
+              <br><small class="text-muted">{{ c.agency_record_number|default:"" }}</small>
+            </div>
+            <small class="text-muted">{{ c.created_at|date:"d/m" }}</small>
+          </li>
+          {% empty %}
+          <li class="list-group-item text-muted text-center">Nenhum caso com falha</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-warning h-100">
+      <div class="card-header bg-warning text-dark">
+        <h6 class="mb-0">⏸️ Processamento Parado &gt;30min</h6>
+      </div>
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+          {% for c in attention.stuck_processing|slice:":5" %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <a href="{% url 'dashboard:case_detail' case_id=c.case_id %}" class="text-decoration-none">
+                {{ c.patient_name|default:"—" }}
+              </a>
+              <br><small class="text-muted">{{ c.status_label }}</small>
+            </div>
+            <small class="text-muted">{{ c.updated_at|date:"d/m H:i" }}</small>
+          </li>
+          {% empty %}
+          <li class="list-group-item text-muted text-center">Nenhum caso parado</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-info h-100">
+      <div class="card-header bg-info text-white">
+        <h6 class="mb-0">⏰ Espera Humana &gt;48h</h6>
+      </div>
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+          {% for c in attention.human_wait|slice:":5" %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <a href="{% url 'dashboard:case_detail' case_id=c.case_id %}" class="text-decoration-none">
+                {{ c.patient_name|default:"—" }}
+              </a>
+              <br><small class="text-muted">{{ c.status_label }}</small>
+            </div>
+            <small class="text-muted">{{ c.updated_at|date:"d/m H:i" }}</small>
+          </li>
+          {% empty %}
+          <li class="list-group-item text-muted text-center">Nenhum caso com espera prolongada</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Case table -->
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h5 class="mb-0">📋 Todos os Casos</h5>
+    <form method="get" class="d-flex gap-2 flex-wrap">
+      <input type="hidden" name="period" value="{{ period }}">
+      <select name="status" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+        <option value="">Todos os status</option>
+        {% for code, label in status_labels.items %}
+        <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <div class="input-group input-group-sm" style="max-width: 250px;">
+        <input type="search" name="q" class="form-control" placeholder="Buscar (mín 3 chars)..." value="{{ search }}" minlength="3">
+        <button type="submit" class="btn btn-outline-primary">Buscar</button>
+      </div>
+    </form>
+  </div>
+  <div class="card-body p-0">
+    {% include "dashboard/_case_list.html" %}
+  </div>
+</div>

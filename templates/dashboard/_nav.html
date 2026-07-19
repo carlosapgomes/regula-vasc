@@ -1,0 +1,14 @@
+<nav class="nav nav-tabs mb-4">
+  <a class="nav-link {% if active_tab == 'index' %}active{% endif %}" href="{% url 'dashboard:index' %}">
+    📊 Dashboard
+  </a>
+  <a class="nav-link {% if active_tab == 'users' %}active{% endif %}" href="{% url 'dashboard:user_list' %}">
+    👥 Usuários
+  </a>
+  <a class="nav-link {% if active_tab == 'prompts' %}active{% endif %}" href="{% url 'dashboard:prompt_list' %}">
+    📝 Prompts
+  </a>
+  <a class="nav-link {% if active_tab == 'llm_config' %}active{% endif %}" href="{% url 'dashboard:llm_config' %}">
+    🤖 LLM Config
+  </a>
+</nav>

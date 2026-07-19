@@ -1,0 +1,66 @@
+{% load dashboard_extras %}
+<div class="table-responsive">
+  <table class="table table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>Paciente</th>
+        <th>Regulação</th>
+        <th>Status</th>
+        <th>Criado por</th>
+        <th>Médico</th>
+        <th>Data</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in case_rows %}
+      <tr>
+        <td>
+          <a href="{% url 'dashboard:case_detail' case_id=row.case.case_id %}" class="text-decoration-none fw-medium">
+            {{ row.patient_name|default:"—" }}
+          </a>
+        </td>
+        <td><code>{{ row.agency_record_number|default:"—" }}</code></td>
+        <td>
+          <span class="badge {{ row.status_css }}">{{ row.status_label }}</span>
+        </td>
+        <td><small>{{ row.created_by_display }}</small></td>
+        <td><small>{{ row.doctor_display }}</small></td>
+        <td><small>{{ row.created_at|date:"d/m/Y H:i" }}</small></td>
+        <td>
+          <a href="{% url 'dashboard:case_detail' case_id=row.case.case_id %}" class="btn btn-sm btn-outline-primary">
+            Detalhe
+          </a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7" class="text-center text-muted py-4">
+          Nenhum caso encontrado.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination -->
+{% if page_obj.paginator.num_pages > 1 %}
+<nav aria-label="Paginação">
+  <ul class="pagination justify-content-center">
+    {% if page_obj.has_previous %}
+    <li class="page-item">
+      <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search %}&q={{ search }}{% endif %}{% if period %}&period={{ period }}{% endif %}">Anterior</a>
+    </li>
+    {% endif %}
+    <li class="page-item disabled">
+      <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+    </li>
+    {% if page_obj.has_next %}
+    <li class="page-item">
+      <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search %}&q={{ search }}{% endif %}{% if period %}&period={{ period }}{% endif %}">Próxima</a>
+    </li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}

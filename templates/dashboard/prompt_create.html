@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}RegulaVasc — Nova Versão de Prompt{% endblock %}
+
+{% block content %}
+{% include "dashboard/_nav.html" %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">
+    📝 Nova Versão{% if prompt_name %}: <code>{{ prompt_name }}</code>{% endif %}
+  </h4>
+  <a href="{% url 'dashboard:prompt_list' %}" class="btn btn-sm btn-outline-secondary">← Voltar</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label class="form-label">Nome do Prompt *</label>
+        <select name="name" class="form-select" required>
+          <option value="">Selecione...</option>
+          <option value="llm1_system" {% if prompt_name == "llm1_system" %}selected{% endif %}>llm1_system</option>
+          <option value="llm1_user" {% if prompt_name == "llm1_user" %}selected{% endif %}>llm1_user</option>
+          <option value="llm2_system" {% if prompt_name == "llm2_system" %}selected{% endif %}>llm2_system</option>
+          <option value="llm2_user" {% if prompt_name == "llm2_user" %}selected{% endif %}>llm2_user</option>
+        </select>
+      </div>
+
+      {% if prompt_name %}
+      <div class="alert alert-info">
+        <small>
+          <strong>Criando versão v{{ next_version }}</strong>
+          {% if has_existing %}
+          — a nova versão será baseada no conteúdo do prompt existente.
+          {% else %}
+          — este é o primeiro versionamento para este prompt.
+          {% endif %}
+        </small>
+      </div>
+      {% endif %}
+
+      <div class="mb-3">
+        <label class="form-label">Conteúdo do Prompt *</label>
+        <textarea name="content" class="form-control font-monospace" rows="20" required style="font-size: 0.85rem;">{{ initial_content }}</textarea>
+      </div>
+
+      <div class="mb-3 form-check">
+        <input type="checkbox" name="activate" id="activate" class="form-check-input" checked>
+        <label for="activate" class="form-check-label">
+          Ativar esta versão imediatamente (desativará a versão anterior ativa)
+        </label>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Criar Nova Versão</button>
+      <a href="{% url 'dashboard:prompt_list' %}" class="btn btn-outline-secondary">Cancelar</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

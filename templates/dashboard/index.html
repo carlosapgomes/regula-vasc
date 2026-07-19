@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static %}
+{% load dashboard_extras %}
+
+{% block title %}RegulaVasc — Dashboard Administrativo{% endblock %}
+
+{% block content %}
+{% include "dashboard/_nav.html" %}
+
+{% if case_detail_mode %}
+  {% include "dashboard/_case_detail_content.html" %}
+{% elif llm_config_mode %}
+  {% include "dashboard/_llm_config_content.html" %}
+{% else %}
+  {% include "dashboard/_dashboard_content.html" %}
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard_search.js' %}"></script>
+{% endblock %}

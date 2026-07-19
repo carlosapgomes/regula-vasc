@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}RegulaVasc — Prompts{% endblock %}
+
+{% block content %}
+{% include "dashboard/_nav.html" %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">📝 Gerenciamento de Prompts</h4>
+</div>
+
+{% for group in prompts_grouped %}
+<div class="card mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h6 class="mb-0">
+      <code>{{ group.name }}</code>
+      {% if group.active_version %}
+      <span class="badge bg-success ms-2">Ativo: v{{ group.active_version.version }}</span>
+      {% endif %}
+    </h6>
+    <a href="{% url 'dashboard:prompt_create' %}?name={{ group.name|urlencode }}" class="btn btn-sm btn-primary">
+      + Nova Versão
+    </a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Versão</th>
+            <th>Conteúdo (preview)</th>
+            <th>Ativo</th>
+            <th>Criado em</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for prompt in group.versions %}
+          <tr>
+            <td><strong>v{{ prompt.version }}</strong></td>
+            <td>
+              <code style="max-width: 400px; display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {{ prompt.content|truncatechars:120 }}
+              </code>
+            </td>
+            <td>
+              {% if prompt.is_active %}
+              <span class="badge bg-success">Sim</span>
+              {% else %}
+              <span class="badge bg-secondary">Não</span>
+              {% endif %}
+            </td>
+            <td><small>{{ prompt.created_at|date:"d/m/Y H:i" }}</small></td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="text-center text-muted py-3">Nenhuma versão encontrada.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% empty %}
+<div class="card">
+  <div class="card-body text-center text-muted py-5">
+    <p>Nenhum prompt encontrado. Execute <code>python manage.py seed_prompts</code> para popular os prompts iniciais.</p>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
