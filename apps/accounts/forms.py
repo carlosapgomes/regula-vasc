@@ -1,5 +1,7 @@
 """Forms for account authentication and role selection."""
 
+from typing import Any
+
 from django import forms
 
 
@@ -9,9 +11,7 @@ class LoginForm(forms.Form):
     username = forms.CharField(
         label="Usuário",
         max_length=150,
-        widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": "nome de usuário", "autofocus": True}
-        ),
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "nome de usuário", "autofocus": True}),
     )
     password = forms.CharField(
         label="Senha",
@@ -58,16 +58,20 @@ class ProfileForm(forms.Form):
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
 
-    def __init__(self, *args: object, **kwargs: object) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        from django import forms as django_forms
+
         from .models import ProfessionalCouncil
 
         super().__init__(*args, **kwargs)
-        self.fields["professional_council"].choices = [("", "---")] + list(
-            ProfessionalCouncil.choices
-        )
+        council_field = self.fields["professional_council"]
+        assert isinstance(council_field, django_forms.ChoiceField)
+        council_field.choices = [("", "---")] + list(ProfessionalCouncil.choices)
 
     def clean(self) -> dict[str, object]:
         cleaned_data = super().clean()
+        if cleaned_data is None:
+            return {}
         council = cleaned_data.get("professional_council", "")
         number = cleaned_data.get("professional_council_number", "")
         has_council = bool(council)

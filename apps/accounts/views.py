@@ -66,10 +66,7 @@ def switch_role_view(request):
 
     from .context_processors import ROLE_DISPLAY_NAMES
 
-    roles_display = [
-        {"name": role, "label": ROLE_DISPLAY_NAMES.get(role, role)}
-        for role in user_roles
-    ]
+    roles_display = [{"name": role, "label": ROLE_DISPLAY_NAMES.get(role, role)} for role in user_roles]
 
     return render(
         request,

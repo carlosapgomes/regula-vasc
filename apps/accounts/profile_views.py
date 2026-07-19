@@ -23,9 +23,7 @@ def profile_view(request):
             user.last_name = form.cleaned_data["last_name"]
             user.email = form.cleaned_data["email"]
             user.professional_council = form.cleaned_data.get("professional_council", "")
-            user.professional_council_number = form.cleaned_data.get(
-                "professional_council_number", ""
-            )
+            user.professional_council_number = form.cleaned_data.get("professional_council_number", "")
             user.save()
             from django.contrib import messages
 
@@ -62,9 +60,7 @@ class HospitalPasswordChangeForm(PasswordChangeForm):
             self.fields[field_name].widget.attrs.setdefault("class", "")
             classes = self.fields[field_name].widget.attrs["class"]
             if "form-control" not in classes:
-                self.fields[field_name].widget.attrs["class"] = (
-                    classes + " form-control"
-                ).strip()
+                self.fields[field_name].widget.attrs["class"] = (classes + " form-control").strip()
 
 
 class CustomPasswordChangeView(auth_views.PasswordChangeView):

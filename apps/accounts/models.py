@@ -56,9 +56,7 @@ class User(AbstractUser):
         has_council = bool(self.professional_council)
         has_number = bool(self.professional_council_number)
         if has_council != has_number:
-            raise ValidationError(
-                "Os campos de conselho profissional devem ser preenchidos juntos ou ambos vazios."
-            )
+            raise ValidationError("Os campos de conselho profissional devem ser preenchidos juntos ou ambos vazios.")
 
     @property
     def display_name(self) -> str:

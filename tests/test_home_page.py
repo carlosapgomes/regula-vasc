@@ -9,7 +9,7 @@ def test_home_page_redirects_to_login_when_unauthenticated(client: Client) -> No
     """Home page at / redirects to login when not authenticated."""
     response = client.get("/")
     assert response.status_code == 302
-    assert "/login/" in response.url
+    assert "/login/" in str(response["location"])
 
 
 @pytest.mark.django_db
@@ -17,8 +17,8 @@ def test_home_page_returns_200_for_authenticated_user(client: Client) -> None:
     """Home page at / returns 200 for authenticated user."""
     from django.contrib.auth import get_user_model
 
-    User = get_user_model()
-    user = User.objects.create_user(username="testuser", password="testpass123")
+    user_model = get_user_model()
+    user = user_model.objects.create_user(username="testuser", password="testpass123")
 
     from apps.accounts.models import Role
 
@@ -39,8 +39,8 @@ def test_pwa_meta_tags_present_in_base(client: Client) -> None:
     """base.html includes required PWA meta tags."""
     from django.contrib.auth import get_user_model
 
-    User = get_user_model()
-    user = User.objects.create_user(username="testuser2", password="testpass123")
+    user_model = get_user_model()
+    user = user_model.objects.create_user(username="testuser2", password="testpass123")
 
     from apps.accounts.models import Role
 

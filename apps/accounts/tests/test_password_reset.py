@@ -1,7 +1,6 @@
 """Tests for password reset flow."""
 
 import re
-from urllib.parse import urlparse
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -102,11 +101,7 @@ class TestPasswordResetToken:
         assert response.status_code == 200
 
         # POST new password at the confirm page
-        confirm_path = (
-            response.redirect_chain[-1][0]
-            if response.redirect_chain
-            else reset_path
-        )
+        confirm_path = response.redirect_chain[-1][0] if response.redirect_chain else reset_path
         response = client.post(
             confirm_path,
             {"new_password1": "NewStr0ng!Pass", "new_password2": "NewStr0ng!Pass"},
@@ -118,7 +113,5 @@ class TestPasswordResetToken:
 
         # Login with new password works
         user.refresh_from_db()
-        login_ok = client.login(
-            username="resettoken@example.com", password="NewStr0ng!Pass"
-        )
+        login_ok = client.login(username="resettoken@example.com", password="NewStr0ng!Pass")
         assert login_ok is True

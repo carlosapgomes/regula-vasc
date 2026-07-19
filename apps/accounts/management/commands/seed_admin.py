@@ -80,9 +80,5 @@ class Command(BaseCommand):
         for role in roles:
             user.roles.add(role)
 
-        self.stdout.write(
-            self.style.SUCCESS(f"  Assigned {len(roles)} roles to {username}")
-        )
-        self.stdout.write(
-            self.style.SUCCESS(f"  Done. Login: {username} / {password}")
-        )
+        self.stdout.write(self.style.SUCCESS(f"  Assigned {len(roles)} roles to {username}"))
+        self.stdout.write(self.style.SUCCESS(f"  Done. Login: {username} / {password}"))

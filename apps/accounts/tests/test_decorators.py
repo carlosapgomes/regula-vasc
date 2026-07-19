@@ -20,10 +20,14 @@ class TestRoleRequiredDecorator:
         Uses RequestFactory but manually patches _messages to avoid
         AttributeError when the decorator calls messages.error().
         """
+        from django.contrib.sessions.backends.base import SessionBase
+
         factory = RequestFactory()
         request = factory.get("/test/")
         request.user = user
-        request.session = {"active_role": active_role}
+        session = SessionBase()
+        session["active_role"] = active_role
+        request.session = session
 
         # Patch _messages to avoid AttributeError when messages.error() is called
         from django.contrib.messages.storage.fallback import FallbackStorage
