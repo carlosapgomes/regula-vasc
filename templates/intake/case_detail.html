@@ -74,40 +74,8 @@
       </div>
     </div>
 
-    <!-- Communication Thread -->
-    <div class="card mb-3" id="case-communication">
-      <div class="card-header">
-        <h6 class="mb-0">💬 Comunicação Operacional</h6>
-      </div>
-      <div class="card-body p-0">
-        <div class="communication-thread p-3" style="max-height: 300px; overflow-y: auto;">
-          {% for msg in communication_messages %}
-          <div class="mb-3 pb-2 border-bottom">
-            <div class="d-flex justify-content-between">
-              <strong>{{ msg.author.get_full_name|default:msg.author.username|default:"Sistema" }}</strong>
-              <small class="text-muted">{{ msg.created_at|date:"d/m/Y H:i" }}</small>
-            </div>
-            <small class="text-muted">Papel: {{ msg.author_role }}</small>
-            <p class="mb-0 mt-1">{{ msg.body|linebreaksbr }}</p>
-          </div>
-          {% empty %}
-          <p class="text-muted mb-0">Nenhuma mensagem ainda.</p>
-          {% endfor %}
-        </div>
-      </div>
-      {% if can_post_communication %}
-      <div class="card-footer">
-        <form method="post" action="{{ communication_post_url }}">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="{{ communication_next_url }}">
-          <div class="input-group">
-            <textarea name="body" class="form-control" rows="2" maxlength="{{ communication_max_length }}" placeholder="Digite sua mensagem..." required></textarea>
-            <button type="submit" class="btn btn-primary">Enviar</button>
-          </div>
-        </form>
-      </div>
-      {% endif %}
-    </div>
+    <!-- Communication Thread (partial compartilhado) -->
+    {% include "cases/_communication_thread.html" %}
 
   </div>
 

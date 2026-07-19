@@ -47,7 +47,7 @@ def _build_lock_result(acquired: bool, case: Case | None = None, reason: str = "
 
 # ── Constants ────────────────────────────────────────────────────────
 
-CASE_COMMUNICATION_MAX_LENGTH = 10000
+CASE_COMMUNICATION_MAX_LENGTH = 2000
 """Maximum length for a communication message body."""
 
 ELIGIBLE_SUPPLEMENTAL_STATUSES = frozenset(

@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import FileResponse, Http404, HttpRequest, HttpResponse, HttpResponseBase, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from apps.accounts.decorators import role_required
@@ -498,6 +499,7 @@ def confirm_receipt(request: HttpRequest, case_id: uuid.UUID) -> HttpResponse:
     # Execute FSM transition: WAIT_NURSE_ACK → CLEANED
     case.nurse_ack(user=request.user)
     from typing import cast
+
     from apps.accounts.models import User as AccountsUser
 
     case.nurse_ack_by = cast(AccountsUser, request.user)
@@ -667,7 +669,7 @@ def post_case_communication(request: HttpRequest, case_id: uuid.UUID) -> HttpRes
         messages.warning(request, "Erro inesperado ao enviar mensagem. Tente novamente.")
 
     next_url = request.POST.get("next", "")
-    if not next_url:
+    if not next_url or not url_has_allowed_host_and_scheme(next_url, allowed_hosts=None):
         next_url = reverse("intake:case_detail", args=[case.case_id])
     return redirect(next_url)
 
