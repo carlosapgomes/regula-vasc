@@ -28,4 +28,4 @@ def record_case_event(sender: type[Case], instance: Case, created: bool, **kwarg
             actor_type=pending["actor_type"],
             payload=pending["payload"],
         )
-        instance._pending_event = None
+        del instance._pending_event

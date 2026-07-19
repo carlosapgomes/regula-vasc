@@ -4,7 +4,6 @@ import uuid
 
 import pytest
 from django.contrib.auth import get_user_model
-from django.utils import timezone
 
 from apps.cases.models import Case, CaseStatus
 from apps.cases.services import (
@@ -142,6 +141,7 @@ class TestAssertLock:
             role="doctor",
         )
         case = Case.objects.get(pk=case_wait_doctor.pk)
+        assert result.token is not None
         # Should not raise
         assert_case_lock(case=case, user=doctor, token=result.token, context="doctor_decision")
 
@@ -169,6 +169,7 @@ class TestAssertLock:
             lease_seconds=-1,  # Expired immediately
         )
         case = Case.objects.get(pk=case_wait_doctor.pk)
+        assert result.token is not None
         with pytest.raises(PermissionError):
             assert_case_lock(case=case, user=doctor, token=result.token, context="doctor_decision")
 
@@ -186,6 +187,7 @@ class TestReleaseLock:
             context="doctor_decision",
             role="doctor",
         )
+        assert result.token is not None
         released = release_case_lock(
             case_id=case_wait_doctor.case_id,
             user=doctor,
@@ -206,6 +208,7 @@ class TestReleaseLock:
             role="doctor",
         )
         other = User.objects.create_user(username="other@test.com", password="pass123")
+        assert result.token is not None
         released = release_case_lock(
             case_id=case_wait_doctor.case_id,
             user=other,
@@ -228,6 +231,7 @@ class TestRenewLock:
             context="doctor_decision",
             role="doctor",
         )
+        assert result.token is not None
         renewed = renew_case_lock(
             case_id=case_wait_doctor.case_id,
             user=doctor,
@@ -246,6 +250,7 @@ class TestRenewLock:
             role="doctor",
             lease_seconds=-1,
         )
+        assert result.token is not None
         renewed = renew_case_lock(
             case_id=case_wait_doctor.case_id,
             user=doctor,

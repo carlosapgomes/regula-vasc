@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 from django.conf import settings
@@ -98,7 +98,9 @@ def claim_case_lock(
                 case.lock_context = context
                 case.lock_role = role
                 case.save(update_fields=["locked_at", "locked_until", "lock_token", "lock_context", "lock_role"])
-                _record_event(case, "WORK_LOCK_CLAIMED", user, {"context": context, "role": role, "lease_seconds": seconds})
+                _record_event(
+                    case, "WORK_LOCK_CLAIMED", user, {"context": context, "role": role, "lease_seconds": seconds}
+                )
                 return _build_lock_result(True, case)
             # Expired lock
             previous_locked_by = {
@@ -201,7 +203,9 @@ def renew_case_lock(
         if case.lock_token is None or case.lock_token != token:
             return _build_lock_result(False, reason="Token de reserva inválido.")
         if case.lock_context != context:
-            return _build_lock_result(False, reason=f"Contexto de reserva inválido: esperado '{context}', obtido '{case.lock_context}'.")
+            return _build_lock_result(
+                False, reason=f"Contexto de reserva inválido: esperado '{context}', obtido '{case.lock_context}'."
+            )
 
         case.locked_at = now
         case.locked_until = locked_until

@@ -12,7 +12,7 @@ from django_fsm import FSMField, transition
 class ReturnState:
     """Target callable for django-fsm that resolves target from return value."""
 
-    def get_state(self, instance, transition, result, args, kwargs) -> str:
+    def get_state(self, instance, transition, result: str, args, kwargs) -> str:
         return result
 
 
