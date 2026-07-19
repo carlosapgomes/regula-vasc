@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     # Local apps
     "apps.accounts",
     "apps.cases",
+    "apps.llm",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
