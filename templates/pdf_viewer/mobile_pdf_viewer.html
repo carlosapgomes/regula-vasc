@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}RegulaVasc — Visualizar PDF{% endblock %}
+
+{% block content %}
+<div class="pdf-viewer-container">
+  <!-- Top toolbar -->
+  <div class="pdf-toolbar d-flex align-items-center justify-content-between p-2 bg-dark text-white rounded-top">
+    <div class="d-flex align-items-center gap-2">
+      <a href="{{ back_url }}" class="btn btn-sm btn-outline-light" id="back-btn">
+        ← Voltar
+      </a>
+      <small class="d-none d-sm-inline text-truncate" style="max-width: 200px;">
+        {{ patient_name|default:"PDF" }}
+      </small>
+    </div>
+    <div class="d-flex align-items-center gap-1">
+      <button class="btn btn-sm btn-outline-light" id="zoom-out" title="Reduzir zoom">−</button>
+      <span class="text-white small px-1" id="zoom-level">100%</span>
+      <button class="btn btn-sm btn-outline-light" id="zoom-in" title="Aumentar zoom">+</button>
+    </div>
+  </div>
+
+  <!-- Error state (hidden by default) -->
+  <div id="pdf-error" class="alert alert-danger m-3" style="display:none;" role="alert"></div>
+
+  <!-- Loading indicator -->
+  <div id="pdf-loading" class="text-center py-5">
+    <div class="spinner-border text-primary mb-3" role="status">
+      <span class="visually-hidden">Carregando PDF...</span>
+    </div>
+    <p class="text-muted">Carregando documento...</p>
+  </div>
+
+  <!-- PDF container -->
+  <div id="pdf-container" class="pdf-canvas-wrapper" style="display:none;">
+    <div class="text-center bg-light py-2">
+      <canvas id="pdf-canvas" class="mx-auto" style="max-width:100%;height:auto;"></canvas>
+    </div>
+  </div>
+
+  <!-- Bottom navigation bar -->
+  <div class="pdf-navbar d-flex align-items-center justify-content-between p-2 bg-dark text-white rounded-bottom">
+    <button class="btn btn-sm btn-outline-light" id="prev-page" disabled>◀ Anterior</button>
+
+    <div class="d-flex align-items-center gap-2">
+      <span id="page-info" class="small">Página 1 de 1</span>
+      <div class="input-group input-group-sm" style="width:auto;">
+        <input type="number" id="page-input" class="form-control form-control-sm" value="1" min="1" max="1"
+               style="width:60px;" inputmode="numeric">
+        <button class="btn btn-outline-light btn-sm" id="go-to-page" title="Ir para página">Ir</button>
+      </div>
+    </div>
+
+    <button class="btn btn-sm btn-outline-light" id="next-page" disabled>Próximo ▶</button>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pdf-viewer.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  pdfViewer.init("{{ pdf_url }}", { scale: 1.0 });
+});
+</script>
+{% endblock %}

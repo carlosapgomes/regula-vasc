@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}RegulaVasc — Visualizar Imagem{% endblock %}
+
+{% block content %}
+<div class="image-viewer-container">
+  <!-- Top toolbar -->
+  <div class="image-toolbar d-flex align-items-center justify-content-between p-2 bg-dark text-white rounded-top">
+    <div class="d-flex align-items-center gap-2">
+      <a href="{{ back_url }}" class="btn btn-sm btn-outline-light" id="back-btn">
+        ← Voltar
+      </a>
+      <small class="d-none d-sm-inline text-truncate" style="max-width: 200px;">
+        {{ filename|default:"Imagem" }}
+      </small>
+    </div>
+    <div class="d-flex align-items-center gap-1">
+      <button class="btn btn-sm btn-outline-light" id="zoom-out" title="Reduzir zoom">−</button>
+      <span class="text-white small px-1" id="zoom-level">100%</span>
+      <button class="btn btn-sm btn-outline-light" id="zoom-in" title="Aumentar zoom">+</button>
+    </div>
+  </div>
+
+  <!-- Image container -->
+  <div class="image-canvas-wrapper text-center bg-dark" style="min-height: 60vh; display: flex; align-items: center; justify-content: center; overflow: auto;">
+    <div id="image-wrapper" style="display:inline-block; padding: 16px;">
+      <img id="viewer-image"
+           src="{{ image_url }}"
+           alt="Imagem do caso"
+           style="max-width: 100%; height: auto; cursor: zoom-in; transition: transform 0.2s ease;"
+           class="img-fluid">
+    </div>
+  </div>
+
+  <!-- Info bar -->
+  <div class="image-info d-flex align-items-center justify-content-center p-2 bg-dark text-white rounded-bottom">
+    <small>
+      <span id="img-dimensions"></span>
+      &middot;
+      <span id="img-size">{{ size_display|default:"" }}</span>
+    </small>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  "use strict";
+
+  var img = document.getElementById("viewer-image");
+  var zoomLevel = document.getElementById("zoom-level");
+  var zoomInBtn = document.getElementById("zoom-in");
+  var zoomOutBtn = document.getElementById("zoom-out");
+  var dimsEl = document.getElementById("img-dimensions");
+
+  var scale = 1.0;
+  var MIN_SCALE = 0.25;
+  var MAX_SCALE = 5.0;
+  var STEP = 0.25;
+
+  function updateZoom() {
+    if (img) {
+      img.style.transform = "scale(" + scale + ")";
+      img.style.cursor = scale > 1.0 ? "zoom-out" : "zoom-in";
+    }
+    if (zoomLevel) {
+      zoomLevel.textContent = Math.round(scale * 100) + "%";
+    }
+  }
+
+  function zoomIn() {
+    scale = Math.min(scale + STEP, MAX_SCALE);
+    updateZoom();
+  }
+
+  function zoomOut() {
+    scale = Math.max(scale - STEP, MIN_SCALE);
+    updateZoom();
+  }
+
+  // Buttons
+  if (zoomInBtn) zoomInBtn.addEventListener("click", zoomIn);
+  if (zoomOutBtn) zoomOutBtn.addEventListener("click", zoomOut);
+
+  // Click na imagem: alterna zoom 1x ↔ 2x
+  if (img) {
+    img.addEventListener("click", function () {
+      if (scale === 1.0) {
+        scale = 2.0;
+      } else if (scale === 2.0) {
+        scale = 1.0;
+      } else {
+        scale = 1.0;
+      }
+      updateZoom();
+    });
+
+    // Mostrar dimensões quando carregar
+    img.addEventListener("load", function () {
+      if (dimsEl) {
+        dimsEl.textContent = img.naturalWidth + " × " + img.naturalHeight + " px";
+      }
+    });
+
+    if (img.complete && dimsEl) {
+      dimsEl.textContent = img.naturalWidth + " × " + img.naturalHeight + " px";
+    }
+  }
+
+  // Keyboard shortcuts
+  document.addEventListener("keydown", function (e) {
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+    if (e.key === "+" || e.key === "=") { e.preventDefault(); zoomIn(); }
+    if (e.key === "-") { e.preventDefault(); zoomOut(); }
+    if (e.key === "Escape") {
+      var backBtn = document.getElementById("back-btn");
+      if (backBtn) backBtn.click();
+    }
+  });
+
+  // Touch pinch-to-zoom (básico)
+  var lastDist = 0;
+  if (img) {
+    img.addEventListener("touchstart", function (e) {
+      if (e.touches.length === 2) {
+        var dx = e.touches[0].clientX - e.touches[1].clientX;
+        var dy = e.touches[0].clientY - e.touches[1].clientY;
+        lastDist = Math.sqrt(dx * dx + dy * dy);
+      }
+    }, { passive: true });
+
+    img.addEventListener("touchmove", function (e) {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        var dx = e.touches[0].clientX - e.touches[1].clientX;
+        var dy = e.touches[0].clientY - e.touches[1].clientY;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (lastDist > 0) {
+          var delta = dist / lastDist;
+          scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * delta));
+          updateZoom();
+        }
+        lastDist = dist;
+      }
+    }, { passive: false });
+
+    img.addEventListener("touchend", function () {
+      lastDist = 0;
+    }, { passive: true });
+  }
+})();
+</script>
+{% endblock %}

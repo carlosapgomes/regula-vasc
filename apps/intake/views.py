@@ -674,6 +674,97 @@ def post_case_communication(request: HttpRequest, case_id: uuid.UUID) -> HttpRes
     return redirect(next_url)
 
 
+# ── Mobile viewers ────────────────────────────────────────────────────
+
+
+@login_required
+@role_required("nurse", "doctor", "admin")
+def mobile_pdf_viewer(request: HttpRequest, case_id: uuid.UUID) -> HttpResponse:
+    """Mobile PDF viewer using PDF.js."""
+    case = get_object_or_404(Case, case_id=case_id)
+    if not case.pdf_file:
+        raise Http404("PDF não encontrado para este caso.")
+
+    # Resolve back_url based on active role
+    active_role: str = str(request.session.get("active_role", ""))
+    if active_role == "doctor":
+        back_url = reverse("doctor:decision", args=[case.case_id])
+    elif active_role == "admin":
+        back_url = reverse("dashboard:case_detail", args=[case.case_id])
+    else:
+        back_url = reverse("intake:case_detail", args=[case.case_id])
+
+    pdf_url = reverse("intake:serve_pdf", args=[case.case_id])
+
+    return render(
+        request,
+        "pdf_viewer/mobile_pdf_viewer.html",
+        {
+            "case": case,
+            "pdf_url": pdf_url,
+            "patient_name": case.patient_name,
+            "back_url": back_url,
+        },
+    )
+
+
+@login_required
+@role_required("nurse", "doctor", "admin")
+def mobile_image_viewer(
+    request: HttpRequest,
+    case_id: uuid.UUID,
+    attachment_id: uuid.UUID,
+) -> HttpResponse:
+    """Mobile image viewer for JPEG/PNG attachments."""
+    attachment = get_object_or_404(
+        CaseAttachment,
+        attachment_id=attachment_id,
+        case__case_id=case_id,
+        is_suppressed=False,
+    )
+
+    if attachment.content_type not in ("image/jpeg", "image/png"):
+        raise Http404("Anexo não é uma imagem JPEG ou PNG.")
+
+    case = attachment.case
+
+    # Resolve back_url based on active role
+    active_role = str(request.session.get("active_role", ""))
+    if active_role == "doctor":
+        back_url = reverse("doctor:decision", args=[case.case_id])
+    elif active_role == "admin":
+        back_url = reverse("dashboard:case_detail", args=[case.case_id])
+    else:
+        back_url = reverse("intake:case_detail", args=[case.case_id])
+
+    # Build image serving URL
+    if active_role == "doctor":
+        image_url = reverse("doctor:serve_attachment", args=[case.case_id, attachment.attachment_id])
+    else:
+        image_url = reverse("intake:serve_attachment", args=[case.case_id, attachment.attachment_id])
+
+    size_display = ""
+    if attachment.size_bytes:
+        size_kb = attachment.size_bytes / 1024
+        if size_kb > 1024:
+            size_display = f"{size_kb / 1024:.1f} MB"
+        else:
+            size_display = f"{size_kb:.0f} KB"
+
+    return render(
+        request,
+        "image_viewer/mobile_image_viewer.html",
+        {
+            "case_id": case_id,
+            "attachment": attachment,
+            "image_url": image_url,
+            "filename": attachment.original_filename,
+            "size_display": size_display,
+            "back_url": back_url,
+        },
+    )
+
+
 # ── Lock renew/release ────────────────────────────────────────────────
 
 

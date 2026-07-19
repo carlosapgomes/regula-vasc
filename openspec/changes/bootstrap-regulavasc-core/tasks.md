@@ -130,11 +130,11 @@ Ver slice: `slices/slice-008-communication.md`
 
 ## 10. S09 — Anexos e Polimento PWA
 
-- [ ] 10.1 Criar visualizador de imagens mobile (`mobile_image_viewer.html`)
-- [ ] 10.2 Criar visualizador PDF mobile com PDF.js (`mobile_pdf_viewer.html`)
-- [ ] 10.3 Integrar viewers nos fluxos intake, doctor, dashboard
-- [ ] 10.4 Testar PWA: installabilidade, service worker caching, manifest válido
-- [ ] 10.5 Criar ícones PWA nos tamanhos corretos
-- [ ] 10.6 Testes de integração end-to-end dos fluxos principais
+- [x] 10.1 Criar visualizador de imagens mobile (`mobile_image_viewer.html`)
+- [x] 10.2 Criar visualizador PDF mobile com PDF.js (`mobile_pdf_viewer.html`)
+- [x] 10.3 Integrar viewers nos fluxos intake, doctor, dashboard
+- [x] 10.4 Testar PWA: installabilidade, service worker caching, manifest válido
+- [x] 10.5 Criar ícones PWA nos tamanhos corretos
+- [x] 10.6 Testes de integração end-to-end dos fluxos principais
 
 Ver slice: `slices/slice-009-polish.md`

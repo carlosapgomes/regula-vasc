@@ -25,4 +25,11 @@ urlpatterns = [
     path("<uuid:case_id>/lock/renew/", views.lock_renew, name="lock_renew"),
     path("<uuid:case_id>/lock/release/", views.lock_release, name="lock_release"),
     path("<uuid:case_id>/communication/", views.post_case_communication, name="post_case_communication"),
+    # Mobile viewers
+    path("<uuid:case_id>/pdf-viewer/", views.mobile_pdf_viewer, name="mobile_pdf_viewer"),
+    path(
+        "<uuid:case_id>/image-viewer/<uuid:attachment_id>/",
+        views.mobile_image_viewer,
+        name="mobile_image_viewer",
+    ),
 ]

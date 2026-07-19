@@ -117,7 +117,14 @@
     <div class="card mb-3">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h6 class="mb-0">📄 PDF do Relatório</h6>
-        <a href="{% url 'intake:serve_pdf' case_id=case.case_id %}" target="_blank" class="btn btn-sm btn-outline-secondary">Abrir</a>
+        <div class="d-flex gap-2">
+          {% if case.pdf_file %}
+          <a href="{% url 'intake:mobile_pdf_viewer' case_id=case.case_id %}" target="_blank" class="btn btn-sm btn-outline-secondary">
+            📱 Ver em tela cheia
+          </a>
+          {% endif %}
+          <a href="{% url 'intake:serve_pdf' case_id=case.case_id %}" target="_blank" class="btn btn-sm btn-outline-secondary">Abrir</a>
+        </div>
       </div>
       <div class="card-body p-0">
         {% if case.pdf_file %}
@@ -179,6 +186,9 @@
               <small class="text-muted">
                 {{ att.size_bytes|filesizeformat }}
                 {% if att.note %} — {{ att.note }}{% endif %}
+                {% if att.content_type in 'image/jpeg,image/png' %}
+                &middot; <a href="{% url 'intake:mobile_image_viewer' case_id=case.case_id attachment_id=att.attachment_id %}" target="_blank" class="text-nowrap">📱 Ver imagem</a>
+                {% endif %}
               </small>
             </div>
           </li>
