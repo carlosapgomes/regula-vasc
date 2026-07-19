@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}RegulaVasc — Avaliação Médica{% endblock %}
+
+{% block content %}
+{% include "doctor/_nav.html" %}
+
+<!-- Back link -->
+<div class="mb-3">
+  <a href="{{ back_url }}" class="btn btn-sm btn-outline-secondary">{{ back_label }}</a>
+</div>
+
+<!-- Status header -->
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+  <div>
+    <h4 class="mb-1">{{ patient_name|default:"Paciente" }}</h4>
+    <p class="text-muted mb-0">
+      <strong>Regulação:</strong> {{ case.agency_record_number|default:"—" }} &middot;
+      <strong>Criado em:</strong> {{ case.created_at|date:"d/m/Y H:i" }}
+      {% if case.regulation_days_on_screen is not None %}
+      &middot; <strong class="text-danger">Urgência:</strong> {{ case.regulation_days_on_screen }} dia{{ case.regulation_days_on_screen|pluralize }}
+      {% endif %}
+    </p>
+  </div>
+  <div class="text-end">
+    <span class="badge fs-6 {{ status_css }}">{{ status_label }}</span>
+    {% if case.doctor_decision == "accept" %}
+    <span class="badge bg-success">✅ Aceito</span>
+    {% elif case.doctor_decision == "deny" %}
+    <span class="badge bg-danger">❌ Recusado</span>
+    {% endif %}
+  </div>
+</div>
+
+{% if lock_error %}
+<div class="alert alert-warning">
+  🔒 {{ lock_error }}
+</div>
+{% endif %}
+
+<div class="row g-4">
+  <!-- Left column: Report + Dual-LLM Cards + Communication -->
+  <div class="col-lg-7">
+
+    <!-- Vascular Report -->
+    <div class="card mb-3">
+      <div class="card-header">
+        <h6 class="mb-0">📋 Relatório Vascular</h6>
+      </div>
+      <div class="card-body">
+        {% if report_html %}
+        <div class="report-container">
+          {{ report_html|safe }}
+        </div>
+        {% else %}
+        <div class="text-muted">
+          <p>Dados estruturados não disponíveis para este caso.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Dual-LLM Cards -->
+    <div class="card mb-3">
+      <div class="card-header">
+        <h6 class="mb-0">🤖 Parecer Automático</h6>
+      </div>
+      <div class="card-body">
+        {% if primary_suggestion or secondary_suggestion %}
+        <div class="row g-3">
+          <!-- Primary LLM Card -->
+          <div class="{% if secondary_suggestion %}col-md-6{% else %}col-12{% endif %}">
+            <div class="card h-100 {% if diverging %}border-warning{% endif %}">
+              <div class="card-header d-flex justify-content-between align-items-center
+                {% if primary_suggestion.suggestion == 'accept' %}bg-success text-white
+                {% elif primary_suggestion.suggestion == 'deny' %}bg-danger text-white
+                {% else %}bg-secondary text-white{% endif %}">
+                <strong>Parecer Primário</strong>
+                {% if diverging %}<span class="badge bg-warning text-dark">⚠️ Divergente</span>{% endif %}
+              </div>
+              <div class="card-body">
+                <p>
+                  <strong>Sugestão:</strong>
+                  {% if primary_suggestion.suggestion == "accept" %}
+                    <span class="text-success fw-bold">✅ Aceitar</span>
+                  {% elif primary_suggestion.suggestion == "deny" %}
+                    <span class="text-danger fw-bold">❌ Recusar</span>
+                  {% else %}
+                    <span class="text-muted">{{ primary_suggestion.suggestion|default:"Indisponível" }}</span>
+                  {% endif %}
+                </p>
+                <p><strong>Confiança:</strong>
+                  {% if primary_suggestion.confidence == "alta" %}
+                    <span class="text-success">Alta</span>
+                  {% elif primary_suggestion.confidence == "media" %}
+                    <span class="text-warning">Média</span>
+                  {% elif primary_suggestion.confidence == "baixa" %}
+                    <span class="text-danger">Baixa</span>
+                  {% else %}
+                    {{ primary_suggestion.confidence|default:"—" }}
+                  {% endif %}
+                </p>
+                {% if primary_suggestion.recommendation_text %}
+                <div class="mb-2">
+                  <strong>Recomendação:</strong>
+                  <p class="mb-0 mt-1 small">{{ primary_suggestion.recommendation_text|linebreaksbr }}</p>
+                </div>
+                {% endif %}
+                {% if primary_suggestion.acceptance_criteria_met %}
+                <div class="mb-2">
+                  <strong>Critérios de Aceitação:</strong>
+                  <ul class="small mb-0 mt-1">
+                    {% for c in primary_suggestion.acceptance_criteria_met %}
+                    <li>{{ c }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                {% endif %}
+                {% if primary_suggestion.exclusion_criteria_met %}
+                <div class="mb-2">
+                  <strong>Critérios de Exclusão:</strong>
+                  <ul class="small mb-0 mt-1">
+                    {% for c in primary_suggestion.exclusion_criteria_met %}
+                    <li>{{ c }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                {% endif %}
+                {% if primary_suggestion.rationale %}
+                <div class="mt-2">
+                  <strong>Fundamentação:</strong>
+                  <p class="mb-0 mt-1 small text-muted">{{ primary_suggestion.rationale|linebreaksbr }}</p>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Secondary LLM Card -->
+          {% if secondary_suggestion %}
+          <div class="col-md-6">
+            <div class="card h-100 {% if diverging %}border-warning{% endif %}">
+              <div class="card-header d-flex justify-content-between align-items-center
+                {% if secondary_suggestion.suggestion == 'accept' %}bg-success text-white
+                {% elif secondary_suggestion.suggestion == 'deny' %}bg-danger text-white
+                {% else %}bg-secondary text-white{% endif %}">
+                <strong>Parecer Secundário</strong>
+                {% if diverging %}<span class="badge bg-warning text-dark">⚠️ Divergente</span>{% endif %}
+              </div>
+              <div class="card-body">
+                <p>
+                  <strong>Sugestão:</strong>
+                  {% if secondary_suggestion.suggestion == "accept" %}
+                    <span class="text-success fw-bold">✅ Aceitar</span>
+                  {% elif secondary_suggestion.suggestion == "deny" %}
+                    <span class="text-danger fw-bold">❌ Recusar</span>
+                  {% else %}
+                    <span class="text-muted">{{ secondary_suggestion.suggestion|default:"Indisponível" }}</span>
+                  {% endif %}
+                </p>
+                <p><strong>Confiança:</strong>
+                  {% if secondary_suggestion.confidence == "alta" %}
+                    <span class="text-success">Alta</span>
+                  {% elif secondary_suggestion.confidence == "media" %}
+                    <span class="text-warning">Média</span>
+                  {% elif secondary_suggestion.confidence == "baixa" %}
+                    <span class="text-danger">Baixa</span>
+                  {% else %}
+                    {{ secondary_suggestion.confidence|default:"—" }}
+                  {% endif %}
+                </p>
+                {% if secondary_suggestion.recommendation_text %}
+                <div class="mb-2">
+                  <strong>Recomendação:</strong>
+                  <p class="mb-0 mt-1 small">{{ secondary_suggestion.recommendation_text|linebreaksbr }}</p>
+                </div>
+                {% endif %}
+                {% if secondary_suggestion.acceptance_criteria_met %}
+                <div class="mb-2">
+                  <strong>Critérios de Aceitação:</strong>
+                  <ul class="small mb-0 mt-1">
+                    {% for c in secondary_suggestion.acceptance_criteria_met %}
+                    <li>{{ c }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                {% endif %}
+                {% if secondary_suggestion.exclusion_criteria_met %}
+                <div class="mb-2">
+                  <strong>Critérios de Exclusão:</strong>
+                  <ul class="small mb-0 mt-1">
+                    {% for c in secondary_suggestion.exclusion_criteria_met %}
+                    <li>{{ c }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                {% endif %}
+                {% if secondary_suggestion.rationale %}
+                <div class="mt-2">
+                  <strong>Fundamentação:</strong>
+                  <p class="mb-0 mt-1 small text-muted">{{ secondary_suggestion.rationale|linebreaksbr }}</p>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        {% else %}
+        <div class="text-center text-muted">
+          <p class="mb-0">Parecer automático não disponível.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Communication Thread (partial compartilhado) -->
+    {% include "cases/_communication_thread.html" %}
+
+  </div>
+
+  <!-- Right column: PDF + Form + Attachments -->
+  <div class="col-lg-5">
+
+    <!-- PDF Viewer -->
+    <div class="card mb-3">
+      <div class="card-header">
+        <h6 class="mb-0">📄 PDF do Relatório</h6>
+      </div>
+      <div class="card-body p-0">
+        {% if case.pdf_file %}
+        <embed src="{{ pdf_url }}" type="application/pdf" class="w-100" style="height: 400px;">
+        {% else %}
+        <div class="p-4 text-center text-muted">
+          <p>PDF não disponível.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Doctor Decision Form -->
+    {% if not readonly %}
+    <div class="card mb-3 border-primary">
+      <div class="card-header bg-primary text-white">
+        <h6 class="mb-0">🩺 Decisão Médica</h6>
+      </div>
+      <div class="card-body">
+        {% if lock_held %}
+        <form method="post" action="{% url 'doctor:submit' case_id=case.case_id %}" id="doctor-decision-form">
+          {% csrf_token %}
+          <input type="hidden" name="lock_token" value="{{ lock_token }}" id="lock-token">
+
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}
+            <p class="mb-0">{{ error }}</p>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Decisão</label>
+            <div class="btn-group d-flex" role="group">
+              {% for radio in form.decision %}
+              <input type="radio" class="btn-check" name="{{ radio.data.name }}" id="{{ radio.id_for_label }}"
+                     value="{{ radio.data.value }}" {% if radio.data.selected %}checked{% endif %}
+                     autocomplete="off" data-decision-toggle>
+              <label class="btn btn-outline-success flex-fill" for="{{ radio.id_for_label }}">
+                {% if radio.data.value == "accept" %}✅ Aceitar{% else %}❌ Recusar{% endif %}
+              </label>
+              {% endfor %}
+            </div>
+            {% if form.decision.errors %}
+            <div class="text-danger small mt-1">{{ form.decision.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3" id="reason-field" style="display:none;">
+            <label class="form-label fw-bold">Justificativa (obrigatória para recusa)</label>
+            {{ form.reason }}
+            {% if form.reason.errors %}
+            <div class="text-danger small mt-1">{{ form.reason.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Observação (opcional)</label>
+            {{ form.observation }}
+            {% if form.observation.errors %}
+            <div class="text-danger small mt-1">{{ form.observation.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-lg" id="submit-btn" disabled>
+              Confirmar Decisão
+            </button>
+            <button type="button" class="btn btn-outline-danger" id="release-lock-btn"
+                    onclick="releaseLock()">
+              Liberar reserva e sair
+            </button>
+          </div>
+        </form>
+        <div class="mt-2 small text-muted">Esta tela está reservada para você por 15 minutos.</div>
+        {% else %}
+        <div class="text-center text-muted">
+          <p>Você não possui reserva ativa para este caso.</p>
+          <a href="{% url 'doctor:decision' case_id=case.case_id %}" class="btn btn-primary">Adquirir reserva</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% else %}
+    <!-- Readonly mode - show decision result -->
+    <div class="card mb-3">
+      <div class="card-header">
+        <h6 class="mb-0">
+          {% if case.doctor_decision == "accept" %}✅ Decisão — Aceito{% endif %}
+          {% if case.doctor_decision == "deny" %}❌ Decisão — Recusado{% endif %}
+        </h6>
+      </div>
+      <div class="card-body">
+        <p><strong>Médico:</strong> {{ case.doctor_display }}</p>
+        <p><strong>Decisão em:</strong> {{ case.doctor_decided_at|date:"d/m/Y H:i" }}</p>
+        {% if case.doctor_reason %}
+        <p><strong>Motivo:</strong> {{ case.doctor_reason|linebreaksbr }}</p>
+        {% endif %}
+        {% if case.doctor_observation %}
+        <p><strong>Observação:</strong> {{ case.doctor_observation|linebreaksbr }}</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Attachments list -->
+    {% if attachments %}
+    <div class="card mb-3">
+      <div class="card-header">
+        <h6 class="mb-0">📎 Anexos ({{ attachments|length }})</h6>
+      </div>
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+          {% for att in attachments %}
+          <li class="list-group-item">
+            <a href="{{ serve_attachment_url_base }}{{ att.attachment_id }}/" target="_blank">
+              {{ att.original_filename }}
+            </a>
+            <br>
+            <small class="text-muted">
+              {{ att.size_bytes|filesizeformat }}
+              {% if att.note %} — {{ att.note }}{% endif %}
+            </small>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if lock_held and not readonly %}
+<script src="{% static 'js/decision.js' %}"></script>
+<script>
+  // Decision toggle: show/hide reason field
+  document.querySelectorAll('[data-decision-toggle]').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+      var reasonField = document.getElementById('reason-field');
+      var submitBtn = document.getElementById('submit-btn');
+      submitBtn.disabled = false;
+      if (this.value === 'deny') {
+        reasonField.style.display = 'block';
+      } else {
+        reasonField.style.display = 'none';
+      }
+    });
+  });
+
+  // Release lock function
+  function releaseLock() {
+    var token = document.getElementById('lock-token').value;
+    if (!token) return;
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', "{% url 'doctor:lock_release' case_id=case.case_id %}", false);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.setRequestHeader('X-CSRFToken', getCSRFToken());
+    xhr.send('lock_token=' + encodeURIComponent(token));
+    window.location.href = "{% url 'doctor:queue' %}";
+  }
+
+  function getCSRFToken() {
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+      var c = cookies[i].trim();
+      if (c.startsWith('csrftoken=')) {
+        return c.substring('csrftoken='.length);
+      }
+    }
+    var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    return input ? input.value : '';
+  }
+</script>
+{% endif %}
+{% endblock %}

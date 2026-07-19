@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}RegulaVasc — Fila Médica{% endblock %}
+
+{% block content %}
+{% include "doctor/_nav.html" %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">🩺 Fila de Avaliação Médica</h4>
+</div>
+
+<div id="doctor-queue-content">
+  {% include "doctor/_queue_content.html" %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/doctor_queue_filter.js' %}"></script>
+<script>
+  // Auto-poll every 30 seconds
+  setInterval(function() {
+    fetch("{% url 'doctor:queue_partial' %}")
+      .then(function(response) { return response.text(); })
+      .then(function(html) {
+        document.getElementById('doctor-queue-content').innerHTML = html;
+      })
+      .catch(function(err) {
+        console.warn('Queue poll failed:', err);
+      });
+  }, 30000);
+</script>
+{% endblock %}

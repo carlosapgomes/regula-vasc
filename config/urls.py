@@ -9,6 +9,8 @@ urlpatterns: list[URLPattern | URLResolver] = [
     path("admin/", admin.site.urls),
     path("", include("apps.accounts.urls")),
     path("intake/", include("apps.intake.urls")),
+    path("doctor/", include("apps.doctor.urls")),
+    path("dashboard/", include("apps.dashboard.urls")),
 ]
 
 if settings.DEBUG:

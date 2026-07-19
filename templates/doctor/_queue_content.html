@@ -1,0 +1,89 @@
+{% load static %}
+
+<div class="row g-4">
+  <!-- Pending Cases -->
+  <div class="col-lg-7">
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">⏳ Pendentes</h5>
+        <span class="badge bg-primary">{{ pending_cases|length }}</span>
+      </div>
+      <div class="card-body p-0">
+        {% if pending_cases %}
+        <div class="list-group list-group-flush">
+          {% for item in pending_cases %}
+          <a href="{% url 'doctor:decision' case_id=item.case.case_id %}"
+             class="list-group-item list-group-item-action d-flex justify-content-between align-items-start {% if item.is_locked %}disabled opacity-50{% endif %}">
+            <div class="ms-2 me-auto">
+              <div class="fw-bold">{{ item.patient_name }}</div>
+              <small class="text-muted">
+                {{ item.case.agency_record_number|default:"Sem registro" }}
+                {% if item.patient_age %} &middot; {{ item.patient_age }} anos{% endif %}
+              </small>
+              {% if item.regulation_days is not None %}
+              <br><small class="text-danger fw-semibold">⏱ {{ item.regulation_days }} dia{{ item.regulation_days|pluralize }}</small>
+              {% endif %}
+            </div>
+            <div class="text-end">
+              {% if item.is_locked %}
+                {% if item.is_locked_by_current_user %}
+                  <span class="badge bg-info">Você está avaliando</span>
+                {% else %}
+                  <span class="badge bg-warning text-dark">🔒 {{ item.locked_by_display }}</span>
+                {% endif %}
+              {% else %}
+                <span class="badge bg-success">Disponível</span>
+              {% endif %}
+              <br>
+              <small class="text-muted">{{ item.case.created_at|date:"d/m/Y H:i" }}</small>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+          <p class="mb-0">✅ Nenhum caso aguardando avaliação médica.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Decided Today -->
+  <div class="col-lg-5">
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">✅ Decididos Hoje</h5>
+        <span class="badge bg-secondary">{{ decided_today_cases|length }}</span>
+      </div>
+      <div class="card-body p-0">
+        {% if decided_today_cases %}
+        <div class="list-group list-group-flush">
+          {% for item in decided_today_cases %}
+          <a href="{% url 'doctor:decided_detail' case_id=item.case.case_id %}"
+             class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
+            <div class="ms-2 me-auto">
+              <div class="fw-bold">{{ item.patient_name }}</div>
+              <small class="text-muted">{{ item.case.agency_record_number|default:"Sem registro" }}</small>
+            </div>
+            <div class="text-end">
+              {% if item.decision == "accept" %}
+                <span class="badge bg-success">✅ Aceito</span>
+              {% elif item.decision == "deny" %}
+                <span class="badge bg-danger">❌ Recusado</span>
+              {% endif %}
+              <br>
+              <small class="text-muted">{{ item.case.doctor_decided_at|date:"H:i" }}</small>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+          <p class="mb-0">Nenhum caso decidido hoje.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>

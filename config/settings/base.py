@@ -21,6 +21,8 @@ INSTALLED_APPS = [
     "apps.llm",
     "apps.pipeline",
     "apps.intake",
+    "apps.doctor",
+    "apps.dashboard",
 ]
 
 AUTH_USER_MODEL = "accounts.User"

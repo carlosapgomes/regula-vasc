@@ -1,0 +1,9 @@
+{% if active_role == "doctor" %}
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item">
+    <a class="nav-link {% if request.resolver_match.url_name == 'queue' %}active{% endif %}" href="{% url 'doctor:queue' %}">
+      🩺 Fila Médica
+    </a>
+  </li>
+</ul>
+{% endif %}
