@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}RegulaVasc — Upload{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Upload de Relatório de Regulação</h5>
+      </div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data" id="upload-form">
+          {% csrf_token %}
+          {{ form }}
+
+          <div class="mb-3">
+            <label for="pdf-files" class="form-label">Relatório(s) PDF</label>
+            <input
+              type="file"
+              name="pdf_files"
+              id="pdf-files"
+              class="form-control"
+              accept=".pdf,application/pdf"
+              multiple
+              required
+            >
+            <div class="form-text">Selecione um ou mais PDFs de relatórios de regulação.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="attachment-files" class="form-label">Anexos complementares (opcional)</label>
+            <input
+              type="file"
+              name="attachment_files"
+              id="attachment-files"
+              class="form-control"
+              accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+              multiple
+            >
+            <div class="form-text">
+              PDF, JPEG ou PNG. Apenas permitido quando enviando exatamente 1 relatório principal.
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="upload-btn">
+            <span class="spinner-border spinner-border-sm d-none" id="upload-spinner" role="status"></span>
+            Enviar
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Meus Últimos Casos</h5>
+        <a href="{% url 'intake:my_cases' %}" class="btn btn-sm btn-outline-primary">Ver todos</a>
+      </div>
+      <div class="card-body p-0">
+        {% if recent_cases %}
+        <ul class="list-group list-group-flush">
+          {% for item in recent_cases %}
+          <a href="{% url 'intake:case_detail' case_id=item.case.case_id %}" class="list-group-item list-group-item-action">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <strong>{{ item.case.patient_name }}</strong><br>
+                <small class="text-muted">{{ item.case.agency_record_number|default:item.case.case_id|stringformat:"s"|truncatechars:12 }}</small>
+              </div>
+              <span class="badge {{ item.status_css }}">{{ item.status_label }}</span>
+            </div>
+            <small class="text-muted">{{ item.case.created_at|date:"d/m/Y H:i" }}</small>
+          </a>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+          Nenhum caso recente.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/upload.js' %}"></script>
+{% endblock %}

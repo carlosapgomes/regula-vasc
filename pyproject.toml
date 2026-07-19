@@ -60,5 +60,9 @@ disable_error_code = ["no-untyped-def", "no-untyped-call", "untyped-decorator"]
 module = "django_fsm"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = ["anthropic", "django_q.tasks"]
+ignore_missing_imports = true
+
 [tool.django-stubs]
 django_settings_module = "config.settings.test"

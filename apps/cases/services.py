@@ -8,11 +8,12 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from django.conf import settings
+from django.core.files.uploadedfile import UploadedFile
 from django.db import transaction
 from django.db.models import QuerySet
 from django.utils import timezone
 
-from .models import Case, CaseEvent, CaseStatus
+from .models import Case, CaseAttachment, CaseCommunicationMessage, CaseEvent, CaseStatus
 
 
 @dataclass(frozen=True)
@@ -42,6 +43,26 @@ def _build_lock_result(acquired: bool, case: Case | None = None, reason: str = "
             locked_until=case.locked_until,
         )
     return CaseLockResult(acquired=False, reason=reason)
+
+
+# ── Constants ────────────────────────────────────────────────────────
+
+CASE_COMMUNICATION_MAX_LENGTH = 10000
+"""Maximum length for a communication message body."""
+
+ELIGIBLE_SUPPLEMENTAL_STATUSES = frozenset(
+    {
+        CaseStatus.NEW,
+        CaseStatus.EXTRACTING,
+        CaseStatus.LLM1_STRUCT,
+        CaseStatus.LLM2_SUGGEST,
+        CaseStatus.WAIT_DOCTOR,
+    }
+)
+"""Statuses in which supplemental attachments can be added."""
+
+
+# ── Helper functions ──────────────────────────────────────────────────
 
 
 def _record_event(
@@ -213,6 +234,28 @@ def renew_case_lock(
     return _build_lock_result(True, Case.objects.get(pk=case.pk))
 
 
+def compute_lock_display(case: Case, user: Any) -> dict[str, object]:
+    """Compute lock display info for a case."""
+    from django.utils import timezone
+
+    now = timezone.now()
+    if case.locked_by is None or case.locked_until is None or case.locked_until <= now:
+        return {
+            "is_locked": False,
+            "is_locked_by_current_user": False,
+            "locked_by_display": "",
+            "locked_until": "",
+            "lock_context": "",
+        }
+    return {
+        "is_locked": True,
+        "is_locked_by_current_user": case.locked_by_id == user.pk,
+        "locked_by_display": case.locked_by.display_name if case.locked_by else "desconhecido",
+        "locked_until": case.locked_until.isoformat() if case.locked_until else "",
+        "lock_context": case.lock_context or "",
+    }
+
+
 def expire_stale_locks_for_statuses(
     *,
     statuses: list[CaseStatus],
@@ -237,6 +280,138 @@ def expire_stale_locks_for_statuses(
         lock_role="",
     )
     return count
+
+
+# ── Attachment supplementary operations ───────────────────────────────
+
+
+class CaseCommunicationError(ValueError):
+    """Error raised when posting a communication message fails."""
+
+
+def add_supplemental_case_attachment(
+    *,
+    case: Case,
+    uploaded_file: UploadedFile,
+    user: Any,
+    note: str,
+) -> CaseAttachment:
+    """Add a supplemental attachment to a case."""
+    if case.status not in ELIGIBLE_SUPPLEMENTAL_STATUSES:
+        raise ValueError(f"Não é possível adicionar anexos complementares no status {case.status}.")
+    if case.doctor_decision:
+        raise ValueError("Caso já foi decidido pelo médico.")
+
+    import hashlib
+
+    file_content = uploaded_file.read()
+    sha256 = hashlib.sha256(file_content).hexdigest()
+    file_name = uploaded_file.name or ""
+    content_type = uploaded_file.content_type or "application/octet-stream"
+    file_size = uploaded_file.size or len(file_content)
+
+    uploaded_file.seek(0)
+
+    attachment = CaseAttachment(
+        case=case,
+        file=uploaded_file,
+        original_filename=file_name,
+        content_type=content_type,
+        size_bytes=file_size,
+        sha256=sha256,
+        uploaded_by=user,
+        upload_phase="supplemental",
+        uploaded_when_case_status=case.status,
+        note=note,
+    )
+    attachment.save()
+
+    CaseEvent.objects.create(
+        case=case,
+        event_type="CASE_ATTACHMENT_SUPPLEMENT_ADDED",
+        actor=user,
+        actor_type="human",
+        payload={
+            "attachment_id": str(attachment.attachment_id),
+            "original_filename": file_name,
+            "content_type": content_type,
+            "size_bytes": file_size,
+            "note": note,
+        },
+    )
+    return attachment
+
+
+def suppress_case_attachment(
+    *,
+    attachment: CaseAttachment,
+    user: Any,
+    reason: str,
+) -> None:
+    """Suppress (soft-delete) an attachment with a reason."""
+    if attachment.is_suppressed:
+        raise ValueError("Anexo já está suprimido.")
+
+    from django.utils import timezone
+
+    attachment.is_suppressed = True
+    attachment.suppressed_at = timezone.now()
+    attachment.suppressed_by = user
+    attachment.suppression_reason = reason
+    attachment.save(update_fields=["is_suppressed", "suppressed_at", "suppressed_by", "suppression_reason"])
+
+    CaseEvent.objects.create(
+        case=attachment.case,
+        event_type="CASE_ATTACHMENT_SUPPRESSED",
+        actor=user,
+        actor_type="human",
+        payload={
+            "attachment_id": str(attachment.attachment_id),
+            "original_filename": attachment.original_filename,
+            "reason": reason,
+        },
+    )
+
+
+def post_case_communication_message(
+    *,
+    case: Case,
+    author: Any,
+    author_role: str,
+    body: str,
+) -> CaseCommunicationMessage:
+    """Post a communication message on a case."""
+    body = (body or "").strip()
+    if not body:
+        raise CaseCommunicationError("Mensagem não pode estar em branco.")
+    if len(body) > CASE_COMMUNICATION_MAX_LENGTH:
+        raise CaseCommunicationError(f"Mensagem muito longa. Máximo de {CASE_COMMUNICATION_MAX_LENGTH} caracteres.")
+    if case.status == CaseStatus.CLEANED:
+        raise CaseCommunicationError("Não é possível enviar mensagens em casos concluídos.")
+    if not author_role:
+        raise CaseCommunicationError("Papel ativo não identificado.")
+
+    msg = CaseCommunicationMessage.objects.create(
+        case=case,
+        author=author,
+        author_role=author_role,
+        body=body,
+        message_type="user",
+    )
+
+    CaseEvent.objects.create(
+        case=case,
+        event_type="CASE_COMMUNICATION_MESSAGE_POSTED",
+        actor=author,
+        actor_type="human",
+        payload={
+            "message_id": str(msg.message_id),
+            "author_role": author_role,
+            "body_preview": body[:200],
+        },
+    )
+
+    return msg
 
 
 def administratively_close_case(

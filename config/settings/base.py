@@ -19,6 +19,8 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.cases",
     "apps.llm",
+    "apps.pipeline",
+    "apps.intake",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -63,9 +65,58 @@ LOGOUT_REDIRECT_URL = "/login/"
 
 APP_DISPLAY_NAME = "RegulaVasc"
 
+# ── Intake Configuration ──────────────────────────────────────────
+
+INTAKE_MAX_ATTACHMENTS_PER_CASE = 10
+INTAKE_MAX_FILES_PER_BATCH = 20
+INTAKE_MAX_UPLOAD_BYTES_PER_FILE = 15 * 1024 * 1024  # 15 MB
+INTAKE_MAX_UPLOAD_BYTES_PER_BATCH = 50 * 1024 * 1024  # 50 MB
+INTAKE_MAX_ATTACHMENT_BYTES_PER_FILE = 10 * 1024 * 1024  # 10 MB
+INTAKE_MAX_ATTACHMENT_BYTES_PER_CASE = 50 * 1024 * 1024  # 50 MB
+
+# ── Lock Configuration ───────────────────────────────────────────
+
+CASE_LOCK_LEASE_SECONDS = 900  # 15 minutes
+
 # Email (dev usa console backend, definido em dev.py)
 PASSWORD_RESET_TIMEOUT = 3600 * 24  # 24h
 DEFAULT_FROM_EMAIL = "noreply@regulavasc.hospital.org"
+
+# ── LLM Configuration ────────────────────────────────────────────────
+
+OPENAI_API_KEY = ""
+OPENAI_MODEL = "gpt-4o-mini"
+OPENAI_BASE_URL = "https://api.openai.com/v1"
+
+# LLM1 (Structured Extraction)
+LLM1_PRIMARY_PROVIDER = "openai"
+LLM1_PRIMARY_MODEL = "gpt-4o-mini"
+LLM1_PRIMARY_API_KEY = ""
+LLM1_PRIMARY_BASE_URL = ""
+
+LLM1_SECONDARY_PROVIDER = "openai"
+LLM1_SECONDARY_MODEL = "gpt-4o-mini"
+LLM1_SECONDARY_API_KEY = ""
+LLM1_SECONDARY_BASE_URL = ""
+
+# LLM2 (Suggestion)
+LLM2_PRIMARY_PROVIDER = "openai"
+LLM2_PRIMARY_MODEL = "gpt-4o-mini"
+LLM2_PRIMARY_API_KEY = ""
+LLM2_PRIMARY_BASE_URL = ""
+
+LLM2_SECONDARY_PROVIDER = "openai"
+LLM2_SECONDARY_MODEL = "gpt-4o-mini"
+LLM2_SECONDARY_API_KEY = ""
+LLM2_SECONDARY_BASE_URL = ""
+
+# Dual-LLM toggle
+LLM_SECONDARY_ENABLED = False
+
+# Anthropic (optional)
+ANTHROPIC_API_KEY = ""
+ANTHROPIC_MODEL = "claude-sonnet-4-20250514"
+ANTHROPIC_BASE_URL = "https://api.anthropic.com"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

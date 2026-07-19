@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}RegulaVasc — Caso {{ case.agency_record_number|default:case.case_id|stringformat:"s"|truncatechars:12 }}{% endblock %}
+
+{% block content %}
+{% include "intake/_nav.html" %}
+
+<!-- Back link -->
+<div class="mb-3">
+  <a href="{{ back_url }}" class="btn btn-sm btn-outline-secondary">{{ back_label }}</a>
+</div>
+
+<!-- Status header -->
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+  <div>
+    <h4 class="mb-1">{{ patient_name|default:"Paciente" }}</h4>
+    <p class="text-muted mb-0">
+      <strong>Regulação:</strong> {{ case.agency_record_number|default:"—" }} &middot;
+      <strong>Criado em:</strong> {{ case.created_at|date:"d/m/Y H:i" }}
+    </p>
+  </div>
+  <div class="text-end">
+    <span class="badge fs-6 {{ status_css }}">{{ status_label }}</span>
+    {% if case.status == "FAILED" %}
+    <span class="badge bg-warning text-dark">⚠️ Falha no processamento</span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left column: Stepper + Timeline + Communication -->
+  <div class="col-lg-7">
+
+    <!-- Stepper -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="stepper d-flex justify-content-between">
+          {% for step in steps %}
+          <div class="stepper-step {% if forloop.counter0 == current_step_idx %}active{% elif forloop.counter0 < current_step_idx %}completed{% endif %}">
+            <div class="stepper-icon">{{ step.icon }}</div>
+            <div class="stepper-label small">{{ step.label }}</div>
+          </div>
+          {% if not forloop.last %}<div class="stepper-line flex-grow-1"></div>{% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="card mb-3">
+      <div class="card-header">
+        <h6 class="mb-0">📜 Timeline de Eventos</h6>
+      </div>
+      <div class="card-body p-0">
+        <div class="timeline p-3">
+          {% for item in events %}
+          <div class="timeline-item d-flex gap-3 mb-3">
+            <div class="timeline-dot dot-{{ item.dot_css }}"></div>
+            <div class="flex-grow-1">
+              <div class="d-flex justify-content-between">
+                <strong>{{ item.label }}</strong>
+                <small class="text-muted">{{ item.event.timestamp|date:"d/m/Y H:i" }}</small>
+              </div>
+              {% if item.event.actor %}
+              <small class="text-muted">por {{ item.event.actor.get_full_name|default:item.event.actor.username }}</small>
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+          <p class="text-muted mb-0">Nenhum evento registrado.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Communication Thread -->
+    <div class="card mb-3" id="case-communication">
+      <div class="card-header">
+        <h6 class="mb-0">💬 Comunicação Operacional</h6>
+      </div>
+      <div class="card-body p-0">
+        <div class="communication-thread p-3" style="max-height: 300px; overflow-y: auto;">
+          {% for msg in communication_messages %}
+          <div class="mb-3 pb-2 border-bottom">
+            <div class="d-flex justify-content-between">
+              <strong>{{ msg.author.get_full_name|default:msg.author.username|default:"Sistema" }}</strong>
+              <small class="text-muted">{{ msg.created_at|date:"d/m/Y H:i" }}</small>
+            </div>
+            <small class="text-muted">Papel: {{ msg.author_role }}</small>
+            <p class="mb-0 mt-1">{{ msg.body|linebreaksbr }}</p>
+          </div>
+          {% empty %}
+          <p class="text-muted mb-0">Nenhuma mensagem ainda.</p>
+          {% endfor %}
+        </div>
+      </div>
+      {% if can_post_communication %}
+      <div class="card-footer">
+        <form method="post" action="{{ communication_post_url }}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ communication_next_url }}">
+          <div class="input-group">
+            <textarea name="body" class="form-control" rows="2" maxlength="{{ communication_max_length }}" placeholder="Digite sua mensagem..." required></textarea>
+            <button type="submit" class="btn btn-primary">Enviar</button>
+          </div>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Right column: PDF + Actions + Attachments + Result -->
+  <div class="col-lg-5">
+
+    <!-- PDF Viewer -->
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">📄 PDF do Relatório</h6>
+      </div>
+      <div class="card-body p-0">
+        {% if case.pdf_file %}
+        <embed src="{{ pdf_url }}" type="application/pdf" class="w-100" style="height: 400px;">
+        {% else %}
+        <div class="p-4 text-center text-muted">
+          <p>PDF não disponível.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Result info (when decided) -->
+    {% if result_info %}
+    <div class="card mb-3">
+      <div class="card-header">
+        <h6 class="mb-0">
+          {% if result_info.type == "doctor_denied" %}❌ Decisão Médica — Recusado{% endif %}
+          {% if result_info.type == "doctor_accepted" %}✅ Decisão Médica — Aceito{% endif %}
+          {% if result_info.type == "failed" %}⚠️ Falha no Processamento{% endif %}
+        </h6>
+      </div>
+      <div class="card-body">
+        {% if result_info.type == "doctor_denied" %}
+        <p><strong>Médico:</strong> {{ result_info.doctor_display }}</p>
+        <p><strong>Motivo:</strong> {{ result_info.reason|linebreaksbr }}</p>
+        {% endif %}
+        {% if result_info.type == "doctor_accepted" %}
+        <p><strong>Médico:</strong> {{ result_info.doctor_display }}</p>
+        {% if result_info.observation %}
+        <p><strong>Observação:</strong> {{ result_info.observation|linebreaksbr }}</p>
+        {% endif %}
+        {% endif %}
+        {% if result_info.type == "failed" %}
+        <p class="text-muted">Ocorreu uma falha durante o processamento automático.</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    {% if can_confirm_receipt %}
+    <div class="card mb-3 border-primary">
+      <div class="card-header bg-primary text-white">
+        <h6 class="mb-0">✅ Ações — Confirmação de Recebimento</h6>
+      </div>
+      <div class="card-body">
+        {% if lock_locked_by_display %}
+        <div class="alert alert-warning">
+          🔒 Caso reservado por <strong>{{ lock_locked_by_display }}</strong>.
+          Aguarde a liberação ou tente novamente mais tarde.
+        </div>
+        {% elif lock_token %}
+        <form method="post" action="{% url 'intake:confirm_receipt' case_id=case.case_id %}">
+          {% csrf_token %}
+          <input type="hidden" name="lock_token" value="{{ lock_token }}" id="lock-token">
+          <p>Confirme que você recebeu e verificou o resultado deste caso.</p>
+          <button type="submit" class="btn btn-success btn-lg w-100" id="confirm-btn">
+            Confirmar Recebimento e Concluir
+          </button>
+        </form>
+        <div class="mt-2 small text-muted">Esta tela está reservada para você por 15 minutos.</div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Supplemental attachments -->
+    {% if can_add_supplemental %}
+    <div class="card mb-3">
+      <div class="card-header">
+        <h6 class="mb-0">📎 Adicionar Anexo Complementar</h6>
+      </div>
+      <div class="card-body">
+        {% if supplemental_lock_blocked_by %}
+        <div class="alert alert-warning mb-0">
+          🔒 Caso reservado pelo médico <strong>{{ supplemental_lock_blocked_by }}</strong>.
+          Anexos complementares não podem ser adicionados enquanto o médico estiver avaliando.
+        </div>
+        {% else %}
+        <form method="post" enctype="multipart/form-data" action="{% url 'intake:supplemental_attachment_add' case_id=case.case_id %}">
+          {% csrf_token %}
+          <div class="mb-2">
+            <input type="file" name="attachment_files" class="form-control" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" multiple required>
+          </div>
+          <div class="mb-2">
+            <textarea name="note" class="form-control" rows="2" placeholder="Justificativa obrigatória..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-outline-primary btn-sm">Adicionar Anexo</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Attachments list -->
+    {% if attachments %}
+    <div class="card mb-3">
+      <div class="card-header">
+        <h6 class="mb-0">📎 Anexos ({{ attachments|length }})</h6>
+      </div>
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+          {% for att in attachments %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <a href="{% url 'intake:serve_attachment' case_id=case.case_id attachment_id=att.attachment_id %}" target="_blank">
+                {{ att.original_filename }}
+              </a>
+              <br>
+              <small class="text-muted">
+                {{ att.size_bytes|filesizeformat }}
+                {% if att.note %} — {{ att.note }}{% endif %}
+              </small>
+            </div>
+            <form method="post" action="{% url 'intake:suppress_attachment' case_id=case.case_id attachment_id=att.attachment_id %}" class="d-inline">
+              {% csrf_token %}
+              <button type="button" class="btn btn-sm btn-outline-danger" onclick="suppressAttachment(this, '{{ att.attachment_id }}')">Suprimir</button>
+              <div class="suppress-reason d-none mt-1">
+                <input type="text" name="reason" class="form-control form-control-sm" placeholder="Motivo obrigatório" required>
+                <button type="submit" class="btn btn-sm btn-danger mt-1">Confirmar</button>
+              </div>
+            </form>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/work_lock.js' %}"></script>
+<script>
+function suppressAttachment(btn, attachmentId) {
+  var reasonDiv = btn.parentElement.querySelector('.suppress-reason');
+  if (reasonDiv) {
+    reasonDiv.classList.toggle('d-none');
+    btn.style.display = 'none';
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% load static %}
+
+<div class="row mb-3">
+  <div class="col-md-4 mb-2">
+    <select class="form-select" name="status" hx-get="{{ my_cases_partial_url }}" hx-target="#cases-list" hx-trigger="change">
+      <option value="">Todos os status</option>
+      {% for code, label in status_labels.items %}
+      <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-4 mb-2">
+    <input
+      type="text"
+      class="form-control"
+      name="q"
+      placeholder="Buscar por número da regulação..."
+      value="{{ search }}"
+      hx-get="{{ my_cases_partial_url }}"
+      hx-target="#cases-list"
+      hx-trigger="keyup changed delay:500ms"
+    >
+  </div>
+</div>
+
+{% if case_data %}
+<div class="row g-3">
+  {% for item in case_data %}
+  <div class="col-md-6 col-lg-4">
+    <a href="{% url 'intake:case_detail' case_id=item.case.case_id %}" class="text-decoration-none">
+      <div class="card h-100 case-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <h6 class="card-title mb-0">{{ item.patient_name|default:"Paciente" }}</h6>
+            <span class="badge {{ item.status_css }}">{{ item.status_label }}</span>
+          </div>
+          <p class="card-text small text-muted mb-1">
+            <strong>Regulação:</strong> {{ item.case.agency_record_number|default:"—" }}
+          </p>
+          <p class="card-text small text-muted mb-1">
+            <strong>Criado por:</strong> {{ item.created_by_display }}
+            {% if item.created_by_other_nurse %}<span class="text-warning">(outro)</span>{% endif %}
+          </p>
+          <p class="card-text small text-muted mb-0">
+            {{ item.case.created_at|date:"d/m/Y H:i" }}
+          </p>
+          {% if item.is_locked %}
+          <div class="mt-2 small">
+            <span class="text-warning">🔒 {{ item.locked_by_display }}</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center text-muted py-5">
+  <p>Nenhum caso encontrado.</p>
+</div>
+{% endif %}

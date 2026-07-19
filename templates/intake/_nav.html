@@ -1,0 +1,14 @@
+{% if show_intake_nav %}
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item">
+    <a class="nav-link {% if request.resolver_match.url_name == 'my_cases' %}active{% endif %}" href="{% url 'intake:my_cases' %}">
+      📋 Casos Operacionais
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'intake:home' %}">
+      📤 Novo Upload
+    </a>
+  </li>
+</ul>
+{% endif %}

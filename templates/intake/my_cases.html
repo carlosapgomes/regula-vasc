@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}RegulaVasc — Meus Casos{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Casos Operacionais</h4>
+  <a href="{% url 'intake:home' %}" class="btn btn-primary">+ Novo Upload</a>
+</div>
+
+{% include "intake/_nav.html" %}
+
+<div id="cases-list">
+  {% include "intake/_my_cases_content.html" %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  setInterval(function() {
+    htmx.trigger('#cases-list', 'htmx:load');
+  }, 30000);
+</script>
+{% endblock %}

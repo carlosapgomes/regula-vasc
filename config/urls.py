@@ -8,6 +8,7 @@ from django.urls import URLPattern, URLResolver, include, path
 urlpatterns: list[URLPattern | URLResolver] = [
     path("admin/", admin.site.urls),
     path("", include("apps.accounts.urls")),
+    path("intake/", include("apps.intake.urls")),
 ]
 
 if settings.DEBUG:
